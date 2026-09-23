@@ -3,6 +3,10 @@
 // Edit this file to adjust the plan as your program/coach updates it.
 
 export const PROGRAM = {
+  // The day you actually start following this plan day-to-day (diet,
+  // walks, tracking). Separate from the medicine course dates below, since
+  // those follow the prescription date regardless of when tracking starts.
+  planStart: "2026-09-24",
   // 30-day daily-medicine course window (prescription-dated).
   dailyMedsCourseStart: "2026-09-19",
   dailyMedsCourseDays: 30,
@@ -126,7 +130,7 @@ export const MENUS = {
     "Besan chilla (40g besan) + 50g vegetables (onion, tomato, spinach) + oil 1 tsp + Curd 100g", // Mon
     "Moong dal chilla (50g soaked moong dal) + paneer stuffing 40g + oil 1 tsp — soak dal the night before", // Tue
     "Paneer bhurji (60g paneer) + vegetables 50g + oil 1 tsp + 1 small roti (30g flour)", // Wed
-    "Greek yogurt / hung curd (200g) + chia seeds 1 tsp + flax seeds 1 tsp + nuts 10g", // Thu
+    "Sooji cheela (30g sooji/suji) + vegetables 50g + curd 50g + oil 1 tsp", // Thu
     "Oats cheela (30g oats flour) + vegetables 50g + curd 50g + oil 1 tsp", // Fri
     "Vegetable upma (40g suji) + vegetables 100g + 3 almonds", // Sat
   ],

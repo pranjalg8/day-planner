@@ -22,6 +22,11 @@ function daysBetween(aISO, bDate) {
   return Math.round((b - a) / 86400000);
 }
 
+export function planDayNumber(dateObj) {
+  const n = daysBetween(PROGRAM.planStart, dateObj) + 1;
+  return n >= 1 ? n : null;
+}
+
 export function dailyMedDayNumber(dateObj) {
   const n = daysBetween(PROGRAM.dailyMedsCourseStart, dateObj) + 1;
   return n;

@@ -1,5 +1,5 @@
 import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS } from "./data.js";
-import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday } from "./engine.js";
+import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, planDayNumber } from "./engine.js";
 import { buildICS, downloadICS } from "./ics.js";
 
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -79,6 +79,9 @@ function renderToday() {
       el("button", { class: "secondary", onclick: () => shiftDate(1) }, "Next ›"),
       el("button", { class: "secondary", onclick: () => { currentDate = new Date(); render(); } }, "Today"),
     ]),
+    planDayNumber(currentDate)
+      ? el("div", { class: "muted" }, `Plan day ${planDayNumber(currentDate)}`)
+      : el("div", { class: "muted" }, `Plan starts ${PROGRAM.planStart}`),
     dailyMedActive(currentDate)
       ? el("div", { class: "muted" }, `Daily meds: day ${dailyMedDayNumber(currentDate)} of ${PROGRAM.dailyMedsCourseDays}`)
       : el("div", { class: "muted" }, "Daily 30-day medicine course is not active on this date."),
