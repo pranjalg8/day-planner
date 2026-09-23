@@ -117,13 +117,13 @@ export const ACTIONS = {
 // 7-day meal rotation. Index 0 = Sunday .. 6 = Saturday (matches Date#getDay()).
 export const MENUS = {
   earlyMorning: [
-    "Jeera water 250ml + walnuts (2 halves)", // Sun
+    "Warm water 250ml + lemon 1tsp + soaked almonds (5)", // Sun
     "Warm water 250ml + lemon 1tsp + soaked almonds (5)", // Mon
-    "Jeera water 250ml + walnuts (2 halves)", // Tue
+    "Warm water 250ml + lemon 1tsp + soaked almonds (5)", // Tue
     "Warm water 250ml + lemon 1tsp + soaked almonds (5)", // Wed
-    "Jeera water 250ml + walnuts (2 halves)", // Thu
+    "Warm water 250ml + lemon 1tsp + soaked almonds (5)", // Thu
     "Warm water 250ml + lemon 1tsp + soaked almonds (5)", // Fri
-    "Jeera water 250ml + walnuts (2 halves)", // Sat
+    "Warm water 250ml + lemon 1tsp + soaked almonds (5)", // Sat
   ],
   breakfast: [
     "Sprouts chaat (60g sprouts) + vegetables + lemon + 1 tsp olive oil", // Sun
