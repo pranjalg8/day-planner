@@ -58,8 +58,8 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set()) {
   const t = { ...DEFAULT_TIMES, ...overrides };
 
   const items = [];
-  const push = (id, category, time, label, notes, links = []) => {
-    items.push({ id, category, time, minutes: toMinutes(time), label, notes, links, done: doneIds.has(id) });
+  const push = (id, category, time, label, notes, links = [], durationMin = null) => {
+    items.push({ id, category, time, minutes: toMinutes(time), label, notes, links, durationMin, done: doneIds.has(id) });
   };
 
   // Wake + weigh-in
@@ -68,18 +68,17 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set()) {
   // Early morning drink
   push("early-morning", "food", t.earlyMorning, "Early morning drink", MENUS.earlyMorning[weekday]);
 
-  // Morning workout: warm-up + bodyweight circuit.
+  // Morning workout: warm-up, then each circuit exercise as its own item.
   const workoutToday = WORKOUT.days.includes(weekday);
   if (workoutToday) {
-    const circuit = WORKOUT.circuit.map((e) => `${e.name} — ${e.sets} × ${e.target}`).join("\n");
-    push(
-      "workout",
-      "workout",
-      t.workout,
-      "Workout: warm-up + circuit",
-      `${WORKOUT.warmup.name}, then:\n${circuit}`,
-      [WORKOUT.warmup, ...WORKOUT.circuit].map((e) => ({ name: e.name, url: e.url }))
-    );
+    const workoutMin = toMinutes(t.workout);
+    const w = WORKOUT.warmup;
+    push("workout-warmup", "workout", t.workout, w.name, "Start of morning workout.", [{ name: w.name, url: w.url }], WORKOUT.warmupMin);
+    let at = workoutMin + WORKOUT.warmupMin;
+    WORKOUT.circuit.forEach((e, i) => {
+      push(`workout-${i + 1}`, "workout", toHHMM(at), e.name, `${e.sets} sets × ${e.target}`, [{ name: e.name, url: e.url }], WORKOUT.exerciseMin);
+      at += WORKOUT.exerciseMin;
+    });
   }
 
   // Breakfast block

@@ -171,6 +171,8 @@ export const MENUS = {
 // trim the list to match the coach's guidance.
 export const WORKOUT = {
   days: [0, 1, 2, 3, 4, 5, 6],
+  warmupMin: 10, // minutes allotted to the warm-up
+  exerciseMin: 5, // minutes allotted per circuit exercise (3 sets)
   warmup: { name: "Full body warm-up", url: "https://youtu.be/9UYVecB2_08" },
   circuit: [
     { name: "Knee push-ups", sets: 3, target: "12–15 reps", url: "https://youtube.com/shorts/rrVwNeIpy-k" },

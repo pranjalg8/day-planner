@@ -53,7 +53,7 @@ export function buildICS(dateObj, items) {
 
   for (const item of items) {
     const [hh, mm] = item.time.split(":").map(Number);
-    const durationMin = CATEGORY_DURATION_MIN[item.category] ?? 10;
+    const durationMin = item.durationMin ?? CATEGORY_DURATION_MIN[item.category] ?? 10;
     const startMinutes = hh * 60 + mm;
     const endMinutes = startMinutes + durationMin;
     const endHH = Math.floor(endMinutes / 60) % 24;
