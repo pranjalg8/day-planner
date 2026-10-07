@@ -27,10 +27,16 @@ const CATEGORY_DURATION_MIN = {
   food: 30,
   medicine: 5,
   exercise: 15,
+  workout: 30,
   water: 1,
   measure: 5,
   prep: 10,
 };
+
+function description(item) {
+  const parts = [item.notes, ...(item.links || []).map((l) => `${l.name}: ${l.url}`)];
+  return parts.filter(Boolean).join("\n");
+}
 
 /**
  * @param {Date} dateObj - the calendar day these items belong to.
@@ -47,7 +53,7 @@ export function buildICS(dateObj, items) {
 
   for (const item of items) {
     const [hh, mm] = item.time.split(":").map(Number);
-    const durationMin = CATEGORY_DURATION_MIN[item.category] ?? 10;
+    const durationMin = item.durationMin ?? CATEGORY_DURATION_MIN[item.category] ?? 10;
     const startMinutes = hh * 60 + mm;
     const endMinutes = startMinutes + durationMin;
     const endHH = Math.floor(endMinutes / 60) % 24;
@@ -65,7 +71,7 @@ export function buildICS(dateObj, items) {
       `DTSTART:${icsDateLocal(dateObj, hh, mm)}`,
       `DTEND:${icsDateLocal(endDate, endHH, endMM)}`,
       `SUMMARY:${escapeText(item.label)}`,
-      item.notes ? `DESCRIPTION:${escapeText(item.notes)}` : null,
+      description(item) ? `DESCRIPTION:${escapeText(description(item))}` : null,
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
       `DESCRIPTION:${escapeText(item.label)}`,

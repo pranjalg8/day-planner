@@ -14,6 +14,7 @@ No build step — plain HTML/CSS/JS, deployable as-is on GitHub Pages.
   automatically. Check items off as you go. Export the remaining items as an
   `.ics` file any time — iOS opens it straight into "Add to Calendar".
 - **Week** — the 7-day meal rotation and daily targets at a glance.
+- **Workout** — morning warm-up + bodyweight circuit and evening stretching, with video links.
 - **Meds** — medicine reference table with dosing/timing notes.
 - **About** — how to use it day to day.
 
@@ -38,6 +39,7 @@ No build step — plain HTML/CSS/JS, deployable as-is on GitHub Pages.
 Edit `data.js`:
 - `MEDICINES` — dosing, slot, timing/buffer rules
 - `MENUS` — the 7-day meal rotation (indexed Sun=0 .. Sat=6)
+- `WORKOUT` — exercises, sets/reps, video links, and which weekdays they run
 - `ACTIONS` — water/step/walk/cucumber targets
 - `PROGRAM` — course start dates and durations
 
