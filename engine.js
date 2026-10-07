@@ -2,7 +2,7 @@
 // times into an ordered list of timed items. No DOM, no storage — easy to
 // reason about and to re-run whenever an actual time changes.
 
-import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS } from "./data.js";
+import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./data.js";
 
 export function toMinutes(hhmm) {
   const [h, m] = hhmm.split(":").map(Number);
@@ -58,8 +58,8 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set()) {
   const t = { ...DEFAULT_TIMES, ...overrides };
 
   const items = [];
-  const push = (id, category, time, label, notes) => {
-    items.push({ id, category, time, minutes: toMinutes(time), label, notes, done: doneIds.has(id) });
+  const push = (id, category, time, label, notes, links = []) => {
+    items.push({ id, category, time, minutes: toMinutes(time), label, notes, links, done: doneIds.has(id) });
   };
 
   // Wake + weigh-in
@@ -67,6 +67,20 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set()) {
 
   // Early morning drink
   push("early-morning", "food", t.earlyMorning, "Early morning drink", MENUS.earlyMorning[weekday]);
+
+  // Morning workout: warm-up + bodyweight circuit.
+  const workoutToday = WORKOUT.days.includes(weekday);
+  if (workoutToday) {
+    const circuit = WORKOUT.circuit.map((e) => `${e.name} — ${e.sets} × ${e.target}`).join("\n");
+    push(
+      "workout",
+      "workout",
+      t.workout,
+      "Workout: warm-up + circuit",
+      `${WORKOUT.warmup.name}, then:\n${circuit}`,
+      [WORKOUT.warmup, ...WORKOUT.circuit].map((e) => ({ name: e.name, url: e.url }))
+    );
+  }
 
   // Breakfast block
   const breakfastMin = toMinutes(t.breakfast);
@@ -100,6 +114,13 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set()) {
 
   // Snack
   push("snack", "food", t.snack, "Evening snack", MENUS.snack[weekday]);
+
+  // Evening stretching
+  if (workoutToday) {
+    push("stretch", "workout", t.stretch, WORKOUT.stretch.name, "Evening stretching routine.", [
+      { name: WORKOUT.stretch.name, url: WORKOUT.stretch.url },
+    ]);
+  }
 
   // Dinner block
   const dinnerMin = toMinutes(t.dinner);

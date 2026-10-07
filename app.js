@@ -1,9 +1,9 @@
-import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS } from "./data.js";
+import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./data.js";
 import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, planDayNumber } from "./engine.js";
 import { buildICS, downloadICS } from "./ics.js";
 
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const CATEGORY_ICON = { food: "🍽️", medicine: "💊", exercise: "🚶", water: "💧", measure: "⚖️", prep: "🌰" };
+const CATEGORY_ICON = { food: "🍽️", medicine: "💊", exercise: "🚶", water: "💧", measure: "⚖️", prep: "🌰", workout: "🏋️" };
 
 function dateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -44,6 +44,7 @@ function render() {
   app.innerHTML = "";
   if (activeTab === "today") app.appendChild(renderToday());
   else if (activeTab === "week") app.appendChild(renderWeek());
+  else if (activeTab === "workout") app.appendChild(renderWorkout());
   else if (activeTab === "meds") app.appendChild(renderMeds());
   else app.appendChild(renderAbout());
 }
@@ -90,13 +91,15 @@ function renderToday() {
   wrap.appendChild(dateCard);
 
   // Actual-time overrides
-  const timeFields = ["wake", "earlyMorning", "breakfast", "lunch", "snack", "dinner", "bedtime"];
+  const timeFields = ["wake", "earlyMorning", "workout", "breakfast", "lunch", "snack", "stretch", "dinner", "bedtime"];
   const fieldLabels = {
     wake: "Wake",
     earlyMorning: "Early morning",
+    workout: "Workout",
     breakfast: "Breakfast",
     lunch: "Lunch",
     snack: "Snack",
+    stretch: "Stretching",
     dinner: "Dinner",
     bedtime: "Bedtime",
   };
@@ -166,7 +169,14 @@ function renderToday() {
             el("div", { class: "item-label" }, [
               `${CATEGORY_ICON[item.category] || ""} ${item.label}`,
             ]),
-            item.notes ? el("div", { class: "item-notes" }, item.notes) : null,
+            item.notes ? el("div", { class: "item-notes", style: "white-space:pre-line" }, item.notes) : null,
+            item.links && item.links.length
+              ? el(
+                  "div",
+                  { class: "item-notes" },
+                  item.links.map((l) => el("a", { href: l.url, target: "_blank", rel: "noopener", style: "margin-right:0.6rem" }, `▶ ${l.name}`))
+                )
+              : null,
           ]),
         ])
       )
@@ -235,6 +245,33 @@ function renderWeek() {
     ])
   );
   return wrap;
+}
+
+// ---- Workout tab ----
+function renderWorkout() {
+  const link = (e) => el("a", { href: e.url, target: "_blank", rel: "noopener" }, "Watch");
+  const table = el("table", {}, [
+    el("thead", {}, el("tr", {}, ["Exercise", "Sets", "Target", "Video"].map((h) => el("th", {}, h)))),
+    el(
+      "tbody",
+      {},
+      WORKOUT.circuit.map((e) =>
+        el("tr", {}, [el("td", {}, e.name), el("td", {}, String(e.sets)), el("td", {}, e.target), el("td", {}, link(e))])
+      )
+    ),
+  ]);
+  return el("div", {}, [
+    el("div", { class: "card" }, [
+      el("h2", {}, "Morning workout"),
+      el("p", {}, ["1. ", el("a", { href: WORKOUT.warmup.url, target: "_blank", rel: "noopener" }, WORKOUT.warmup.name)]),
+      el("p", {}, "2. Circuit:"),
+      table,
+    ]),
+    el("div", { class: "card" }, [
+      el("h2", {}, "Evening"),
+      el("p", {}, el("a", { href: WORKOUT.stretch.url, target: "_blank", rel: "noopener" }, WORKOUT.stretch.name)),
+    ]),
+  ]);
 }
 
 // ---- Meds tab ----

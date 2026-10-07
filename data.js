@@ -24,9 +24,11 @@ export const PROGRAM = {
 export const DEFAULT_TIMES = {
   wake: "06:15",
   earlyMorning: "06:30",
+  workout: "07:00",
   breakfast: "08:30",
   lunch: "13:30",
   snack: "16:00",
+  stretch: "18:00",
   dinner: "19:30",
   bedtime: "22:30",
 };
@@ -161,4 +163,20 @@ export const MENUS = {
     "Vegetable soup + paneer cubes 50g", // Fri
     "Stir-fried vegetables + soy chunks 40g raw", // Sat
   ],
+};
+
+// Exercise routine (from coach). Morning: warm-up then a bodyweight circuit.
+// Evening: full-body stretching. `days` lists weekdays it runs on
+// (0=Sun .. 6=Sat) — no frequency was specified, so it defaults to daily;
+// trim the list to match the coach's guidance.
+export const WORKOUT = {
+  days: [0, 1, 2, 3, 4, 5, 6],
+  warmup: { name: "Full body warm-up", url: "https://youtu.be/9UYVecB2_08" },
+  circuit: [
+    { name: "Knee push-ups", sets: 3, target: "12–15 reps", url: "https://youtube.com/shorts/rrVwNeIpy-k" },
+    { name: "Lat pull-down with towel", sets: 3, target: "10 reps", url: "https://youtube.com/shorts/IG6JDp9mZFk" },
+    { name: "Bodyweight squats", sets: 3, target: "12 reps", url: "https://youtube.com/shorts/eFEVKmp3M4g" },
+    { name: "Elbow plank", sets: 3, target: "30 sec hold", url: "https://youtube.com/shorts/xe2MXatLTUw" },
+  ],
+  stretch: { name: "Full body stretching", url: "https://youtu.be/7_Gmj7awnWY" },
 };
