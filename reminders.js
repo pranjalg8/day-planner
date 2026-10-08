@@ -4,7 +4,9 @@
 
 const PREF_KEY = "elevate-planner-reminders"; // not prefixed: excluded from backups
 const LEAD_MIN = 2;
+const SNOOZE_MIN = 15;
 let timers = [];
+const snoozeTimers = new Map(); // item id -> timeout (kept across scheduleReminders)
 
 export function remindersSupported() {
   return typeof Notification !== "undefined";
@@ -36,7 +38,18 @@ async function notify(item) {
   const opts = { body: item.notes || "", tag: item.id, icon: "icons/icon-192.png" };
   try {
     const reg = await navigator.serviceWorker?.getRegistration();
-    if (reg) return reg.showNotification(item.label, opts);
+    if (reg) {
+      const d = new Date();
+      const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return reg.showNotification(item.label, {
+        ...opts,
+        data: { id: item.id, date },
+        actions: [
+          { action: "done", title: "Done" },
+          { action: "snooze", title: `Snooze ${SNOOZE_MIN} min` },
+        ],
+      });
+    }
   } catch {
     /* fall through */
   }
@@ -59,4 +72,19 @@ export function scheduleReminders(items) {
     if (delayMs < 0 || delayMs > 86400000) continue;
     timers.push(setTimeout(() => notify(item), delayMs));
   }
+}
+
+/**
+ * Re-notify for an item after `mins` minutes (in-page timer; same best-effort
+ * limits as other reminders). Returns false if reminders are off.
+ */
+export function snoozeItem(item, mins = SNOOZE_MIN) {
+  if (!remindersEnabled()) return false;
+  clearTimeout(snoozeTimers.get(item.id));
+  snoozeTimers.set(item.id, setTimeout(() => { snoozeTimers.delete(item.id); notify(item); }, mins * 60000));
+  return true;
+}
+
+export function snoozedUntil() {
+  return snoozeTimers.size;
 }

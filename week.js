@@ -1,7 +1,9 @@
-import { MENUS, ACTIONS, WORKOUT } from "./data.js";
+import { ACTIONS } from "./data.js";
 import { dailyMedActive, weeklyMedActiveToday } from "./engine.js";
 import { dateKey } from "./logstore.js";
+import { loadPlan, mealFor, effectiveWorkoutDays, offDayFor } from "./planstore.js";
 
+const SLOTS = { "Early AM": "earlyMorning", Breakfast: "breakfast", Lunch: "lunch", Snack: "snack", Dinner: "dinner" };
 const NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 function h(tag, attrs = {}, children = []) {
@@ -24,25 +26,28 @@ export function renderWeekTab() {
   const now = new Date();
   const todayKey = dateKey(now);
   const wrap = h("div", {});
+  const plan = loadPlan();
   for (const d of weekDates(now)) {
     const wd = d.getDay();
     const isToday = dateKey(d) === todayKey;
     const markers = [];
-    if (WORKOUT.days.includes(wd)) markers.push(h("span", { class: "chip wk-workout" }, "🏋️ Workout"));
+    const off = offDayFor(plan, dateKey(d));
+    if (off) markers.push(h("span", { class: "chip wk-off" }, `🌴 ${off.label}`));
+    else if (effectiveWorkoutDays(plan).includes(wd)) markers.push(h("span", { class: "chip wk-workout" }, "🏋️ Workout"));
     if (weeklyMedActiveToday(d)) markers.push(h("span", { class: "chip wk-d3" }, "💊 D3 day"));
     else if (dailyMedActive(d)) markers.push(h("span", { class: "chip wk-meds" }, "💊 Meds"));
-    const meal = (label, list) => h("div", { class: "wk-meal" }, [h("span", { class: "wk-meal-l" }, label), h("span", {}, list[wd])]);
+    const meal = (label) => h("div", { class: "wk-meal" }, [h("span", { class: "wk-meal-l" }, label), h("span", {}, mealFor(plan, dateKey(d), SLOTS[label], wd))]);
     wrap.appendChild(h("div", { class: `card wk-day${isToday ? " today" : ""}`, "data-date": dateKey(d), "aria-current": isToday ? "date" : null }, [
       h("div", { class: "wk-head" }, [
         h("h2", {}, `${NAMES[wd]} ${d.getDate()}/${d.getMonth() + 1}`),
         isToday ? h("span", { class: "chip wk-today" }, "Today") : null,
       ]),
       h("div", { class: "wk-markers" }, markers),
-      meal("Early AM", MENUS.earlyMorning),
-      meal("Breakfast", MENUS.breakfast),
-      meal("Lunch", MENUS.lunch),
-      meal("Snack", MENUS.snack),
-      meal("Dinner", MENUS.dinner),
+      meal("Early AM"),
+      meal("Breakfast"),
+      meal("Lunch"),
+      meal("Snack"),
+      meal("Dinner"),
     ]));
   }
   wrap.appendChild(h("div", { class: "card" }, [

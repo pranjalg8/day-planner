@@ -46,6 +46,7 @@ export const MEDICINES = [
     offsetAfterMealMin: 5, // must be within 30 min after meal; 5 gives margin
     bufferAfterMin: 60,
     notes: "Take within 30 min after food. Nothing else for 1 hour after.",
+    missedHint: "Meant to be taken within 30 min after food. If that window has passed, don't double up; check with your doctor about what to do. Keep the 1-hour gap before other medicines.",
   },
   {
     id: "l-carnitine-am",
@@ -78,6 +79,7 @@ export const MEDICINES = [
     course: "weekly",
     offsetAfterMealMin: 15,
     notes: "Weekly dose — same slot as Evion L.",
+    missedHint: "Weekly dose: check with your doctor whether to take it late or wait for the next one.",
   },
   {
     id: "stable-n-fit-pm",
@@ -87,6 +89,7 @@ export const MEDICINES = [
     offsetAfterMealMin: 5,
     bufferAfterMin: 60,
     notes: "Take within 30 min after food. Nothing else for 1 hour after.",
+    missedHint: "Meant to be taken within 30 min after food. If that window has passed, don't double up; check with your doctor about what to do. Keep the 1-hour gap before other medicines.",
   },
   {
     id: "l-carnitine-pm",
@@ -182,3 +185,14 @@ export const WORKOUT = {
   ],
   stretch: { name: "Full body stretching", url: "https://youtu.be/7_Gmj7awnWY" },
 };
+
+// Evening prep reminders derived from the menu. Each entry means: the evening
+// BEFORE `weekday`'s `slot` meal, add a prep item (like "Soak almonds").
+// 0=Sun .. 6=Sat. If that meal is swapped for the day in the Plan tab, the
+// reminder is skipped.
+export const PREP_NOTES = [
+  { id: "moong-dal", slot: "breakfast", weekday: 2, label: "Soak moong dal for tomorrow's chilla", notes: "50g moong dal, soak overnight for Tuesday's breakfast." },
+  { id: "sprouts-sun", slot: "breakfast", weekday: 0, label: "Start/soak sprouts for tomorrow's chaat", notes: "60g sprouts for Sunday's breakfast — soak moong/chana tonight if not already sprouting." },
+  { id: "sprouts-tue", slot: "snack", weekday: 2, label: "Start/soak sprouts for tomorrow's snack", notes: "50g sprouts for Tuesday's snack — soak tonight if not already sprouting." },
+  { id: "sprouts-fri", slot: "snack", weekday: 5, label: "Start/soak sprouts for tomorrow's snack", notes: "50g sprouts for Friday's snack — soak tonight if not already sprouting." },
+];
