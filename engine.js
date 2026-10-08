@@ -2,7 +2,8 @@
 // times into an ordered list of timed items. No DOM, no storage — easy to
 // reason about and to re-run whenever an actual time changes.
 
-import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./data.js";
+import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT, PREP_NOTES } from "./data.js";
+import { loadPlan, normalizePlan, offDayFor, dateKeyOf } from "./planstore.js";
 
 export function toMinutes(hhmm) {
   const [h, m] = hhmm.split(":").map(Number);
@@ -52,24 +53,40 @@ export function weeklyMedActiveToday(dateObj) {
  *   (wake, earlyMorning, breakfast, lunch, snack, dinner, bedtime), "HH:MM".
  * @param {Set<string>} doneIds - item ids already marked done (excluded
  *   from calendar export, kept in the on-screen list).
+ * @param {object} [plan] - plan overrides (see planstore.js): meal swaps,
+ *   off-day ranges, workout weekdays, default times. Defaults to the saved
+ *   plan (an empty plan outside the browser); pass {} for pure program defaults.
  */
-export function computeDay(dateObj, overrides = {}, doneIds = new Set()) {
+export function computeDay(dateObj, overrides = {}, doneIds = new Set(), plan = loadPlan()) {
   const weekday = dateObj.getDay();
-  const t = { ...DEFAULT_TIMES, ...overrides };
+  plan = normalizePlan(plan);
+  const key = dateKeyOf(dateObj);
+  const off = offDayFor(plan, key);
+  const t = { ...DEFAULT_TIMES, ...plan.times, ...overrides };
+  const mealText = (slot) => plan.meals[key]?.[slot] || MENUS[slot][weekday];
 
   const items = [];
   const push = (id, category, time, label, notes, links = [], durationMin = null) => {
     items.push({ id, category, time, minutes: toMinutes(time), label, notes, links, durationMin, done: doneIds.has(id) });
+    return items[items.length - 1];
+  };
+  // A meal item whose text may have been swapped for this date.
+  const meal = (slot, id, label) => {
+    const it = push(id, "food", t[slot], label, mealText(slot));
+    if (plan.meals[key]?.[slot]) it.swapped = true;
   };
 
   // Wake + weigh-in
-  push("wake-weigh", "measure", t.wake, "Weigh yourself (fasting)", "Before eating or drinking anything.");
+  push(
+    "wake-weigh", "measure", t.wake, "Weigh yourself (fasting)",
+    "Before eating or drinking anything." + (off ? `\n🌴 ${off.label}: workouts and walks are hidden today.` : "")
+  );
 
   // Early morning drink
-  push("early-morning", "food", t.earlyMorning, "Early morning drink", MENUS.earlyMorning[weekday]);
+  meal("earlyMorning", "early-morning", "Early morning drink");
 
   // Morning workout: warm-up, then each circuit exercise as its own item.
-  const workoutToday = WORKOUT.days.includes(weekday);
+  const workoutToday = !off && (plan.workoutDays ?? WORKOUT.days).includes(weekday);
   if (workoutToday) {
     const workoutMin = toMinutes(t.workout);
     const w = WORKOUT.warmup;
@@ -83,8 +100,8 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set()) {
 
   // Breakfast block
   const breakfastMin = toMinutes(t.breakfast);
-  push("breakfast", "food", t.breakfast, `Breakfast (start with ${ACTIONS.cucumberSlices} slices cucumber)`, MENUS.breakfast[weekday]);
-  push("walk-breakfast", "exercise", toHHMM(breakfastMin + 5), `${ACTIONS.walkAfterMealMin}-min walk`, "Post-breakfast walk.");
+  meal("breakfast", "breakfast", `Breakfast (start with ${ACTIONS.cucumberSlices} slices cucumber)`);
+  if (!off) push("walk-breakfast", "exercise", toHHMM(breakfastMin + 5), `${ACTIONS.walkAfterMealMin}-min walk`, "Post-breakfast walk.");
 
   const dailyActive = dailyMedActive(dateObj);
   const stableAM = MEDICINES.find((m) => m.id === "stable-n-fit-am");
@@ -100,8 +117,8 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set()) {
 
   // Lunch block
   const lunchMin = toMinutes(t.lunch);
-  push("lunch", "food", t.lunch, `Lunch (start with ${ACTIONS.cucumberSlices} slices cucumber)`, MENUS.lunch[weekday]);
-  push("walk-lunch", "exercise", toHHMM(lunchMin + 5), `${ACTIONS.walkAfterMealMin}-min walk`, "Post-lunch walk.");
+  meal("lunch", "lunch", `Lunch (start with ${ACTIONS.cucumberSlices} slices cucumber)`);
+  if (!off) push("walk-lunch", "exercise", toHHMM(lunchMin + 5), `${ACTIONS.walkAfterMealMin}-min walk`, "Post-lunch walk.");
   const evion = MEDICINES.find((m) => m.id === "evion-l-5000");
   if (dailyActive) {
     push(evion.id, "medicine", toHHMM(lunchMin + evion.offsetAfterMealMin), evion.name, evion.notes);
@@ -112,7 +129,7 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set()) {
   }
 
   // Snack
-  push("snack", "food", t.snack, "Evening snack", MENUS.snack[weekday]);
+  meal("snack", "snack", "Evening snack");
 
   // Evening stretching
   if (workoutToday) {
@@ -123,8 +140,8 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set()) {
 
   // Dinner block
   const dinnerMin = toMinutes(t.dinner);
-  push("dinner", "food", t.dinner, `Dinner (start with ${ACTIONS.cucumberSlices} slices cucumber)`, MENUS.dinner[weekday]);
-  push("walk-dinner", "exercise", toHHMM(dinnerMin + 5), `${ACTIONS.walkAfterMealMin}-min walk`, "Post-dinner walk.");
+  meal("dinner", "dinner", `Dinner (start with ${ACTIONS.cucumberSlices} slices cucumber)`);
+  if (!off) push("walk-dinner", "exercise", toHHMM(dinnerMin + 5), `${ACTIONS.walkAfterMealMin}-min walk`, "Post-dinner walk.");
 
   const stablePM = MEDICINES.find((m) => m.id === "stable-n-fit-pm");
   const stablePMTime = dinnerMin + stablePM.offsetAfterMealMin;
@@ -155,6 +172,16 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set()) {
 
   // Nightly prep for tomorrow.
   push("soak-almonds", "prep", toHHMM(bedMin - 30), "Soak almonds for tomorrow", "Before sleeping, every night.");
+
+  // Evening prep for tomorrow's meals (e.g. soak dal). Skipped when tomorrow's
+  // meal in that slot has been swapped, since the swap replaces the dish.
+  const tomorrow = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate() + 1);
+  const tomorrowPlanMeals = plan.meals[dateKeyOf(tomorrow)] || {};
+  for (const p of PREP_NOTES) {
+    if (p.weekday === tomorrow.getDay() && !tomorrowPlanMeals[p.slot]) {
+      push(`prep-${p.id}`, "prep", toHHMM(bedMin - 40), p.label, p.notes);
+    }
+  }
 
   items.sort((a, b) => a.minutes - b.minutes);
   return items;
