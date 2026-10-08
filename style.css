@@ -414,3 +414,20 @@ details.block > summary .block-name { flex: 1; }
 .report-opt { display: inline-flex; align-items: center; gap: 0.3rem; min-height: 2.2rem; }
 .report-preview { white-space: pre-wrap; word-break: break-word; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; font-size: 0.85rem; max-height: 14rem; overflow: auto; }
 .report-status { min-height: 1.2em; margin: 0.4rem 0 0; }
+/* === daily === */
+.nextup { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.nextup-text { flex: 1 1 8rem; min-width: 0; }
+.nextup-actions { display: inline-flex; gap: 0.4rem; margin-left: auto; }
+button.mini { min-height: 2.25rem; padding: 0.2rem 0.7rem; font-size: 0.85rem; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; }
+button.mini.primary { background: var(--accent-strong); color: var(--on-accent); border-color: var(--accent-strong); }
+.date-pick { display: block; margin-top: 0.5rem; color: var(--muted); font-size: 0.9rem; }
+.date-pick input { font: inherit; padding: 0.25rem 0.4rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+.day-banner { margin-top: 0.5rem; padding: 0.45rem 0.7rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; background: var(--accent-soft); color: var(--accent-text); border: 1px solid var(--accent); }
+.day-banner.future { background: var(--card); border-style: dashed; }
+.missed-count { color: var(--accent-text); font-weight: 700; font-size: 0.9rem; }
+.chip.missed-chip { background: var(--accent-strong); color: var(--on-accent); }
+.item.missed { border-left: 3px solid var(--accent-strong); }
+.missed-hint { margin-top: 0.3rem; font-size: 0.85rem; color: var(--muted); font-style: italic; }
+#toast-host { position: fixed; left: 0; right: 0; bottom: calc(1rem + env(safe-area-inset-bottom)); display: flex; justify-content: center; padding: 0 16px; z-index: 50; pointer-events: none; }
+.toast { pointer-events: auto; display: flex; align-items: center; gap: 0.8rem; max-width: 28rem; padding: 0.6rem 0.9rem; border-radius: 12px; background: var(--text); color: var(--bg); box-shadow: 0 4px 16px rgba(0,0,0,.25); font-size: 0.92rem; }
+.toast-action { background: none; border: 0; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; min-height: 2.25rem; padding: 0 0.3rem; cursor: pointer; }

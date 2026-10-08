@@ -2,7 +2,10 @@ import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./da
 import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, planDayNumber } from "./engine.js";
 import { buildICS, buildMultiDayICS, downloadICS } from "./ics.js";
 import { backupCard } from "./backup.js";
-import { remindersSupported, remindersEnabled, setRemindersEnabled, scheduleReminders } from "./reminders.js";
+import { remindersSupported, remindersEnabled, setRemindersEnabled, scheduleReminders, snoozeItem } from "./reminders.js";
+import { findMissed, missedHint } from "./missed.js";
+import { markDone, unmarkDone, parseDeepLink, parseDateKey, SNOOZE_MIN } from "./actions.js";
+import { showToast } from "./toast.js";
 import { renderLog } from "./log.js";
 import { renderWeekTab } from "./week.js";
 import { renderMedsTab } from "./meds.js";
@@ -128,6 +131,10 @@ function renderToday() {
   const doneCount = items.filter((i) => i.done).length;
   const pct = items.length ? Math.round((doneCount / items.length) * 100) : 0;
   const nextItem = isToday ? items.find((i) => !i.done && i.minutes >= nowMin) : null;
+  const isPast = key < dateKey(new Date());
+  const isFuture = key > dateKey(new Date());
+  const missed = findMissed(items, { isToday, isPast, nowMin });
+  const missedIds = new Set(missed.map((i) => i.id));
 
   // History + streak (only real days up to today are recorded)
   let history = loadHistory();
@@ -151,6 +158,12 @@ function renderToday() {
         nextItem
           ? el("span", { class: "nextup-text" }, [el("strong", {}, nextItem.time), ` ${nextItem.label}`])
           : el("span", { class: "nextup-text" }, items.every((i) => i.done) ? "All done for today 🎉" : "Nothing left on the clock today"),
+        nextItem
+          ? el("span", { class: "nextup-actions" }, [
+              el("button", { class: "mini", "data-act": "snooze", onclick: () => snooze(nextItem) }, `Snooze ${SNOOZE_MIN}m`),
+              el("button", { class: "mini primary", "data-act": "done", onclick: () => setDone(nextItem, true) }, "Done"),
+            ])
+          : null,
       ])
     );
   }
@@ -163,6 +176,23 @@ function renderToday() {
       el("button", { class: "secondary", onclick: () => shiftDate(1) }, "Next ›"),
       el("button", { class: "secondary", onclick: () => { currentDate = new Date(); scrollPending = true; render(); } }, "Today"),
     ]),
+    el("label", { class: "date-pick" }, [
+      "Jump to date ",
+      el("input", {
+        type: "date",
+        id: "date-picker",
+        value: key,
+        onchange: (e) => {
+          const d = parseDateKey(e.target.value);
+          if (!d) return;
+          currentDate = d;
+          scrollPending = true;
+          render();
+        },
+      }),
+    ]),
+    isPast ? el("div", { class: "day-banner past", role: "note" }, "Editing a past day. Changes are saved to that date.") : null,
+    isFuture ? el("div", { class: "day-banner future", role: "note" }, "Planning ahead. This is a future day; times and checks are saved to that date.") : null,
     planDayNumber(currentDate)
       ? el("div", { class: "muted" }, `Plan day ${planDayNumber(currentDate)}`)
       : el("div", { class: "muted" }, `Plan starts ${PROGRAM.planStart}`),
@@ -178,6 +208,7 @@ function renderToday() {
     el("div", { class: "card progress-card" }, [
       el("div", { class: "progress-head" }, [
         el("strong", {}, `${doneCount} of ${items.length} done`),
+        missed.length ? el("span", { class: "missed-count", id: "missed-count" }, `${missed.length} missed`) : null,
         el("span", { class: "streak", title: "Consecutive days with at least 80% completion" }, `🔥 ${streak}-day streak`),
       ]),
       el("div", { class: "progress-bar", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(pct) }, [
@@ -232,9 +263,16 @@ function renderToday() {
         {
           class: "secondary",
           onclick: () => {
+            if (!overrideCount) return;
+            if (!confirm("Reset all adjusted times for this day to the defaults?")) return;
+            const before = { ...overrides };
             state.overrides = {};
             saveDayState(key, state);
             render();
+            showToast("Times reset to defaults", {
+              actionLabel: "Undo",
+              onAction: () => { const s2 = loadDayState(key); s2.overrides = before; saveDayState(key, s2); render(); },
+            });
           },
         },
         "Reset to defaults"
@@ -248,27 +286,22 @@ function renderToday() {
   // Grouped schedule
   const renderItem = (item) => {
     const past = isToday && !item.done && item.minutes < nowMin;
+    const isMissed = missedIds.has(item.id);
     const isNext = nextItem && item.id === nextItem.id;
-    return el("div", { class: `item cat-${item.category}${item.done ? " done" : ""}${past ? " past" : ""}${isNext ? " next" : ""}`, "data-id": item.id }, [
+    return el("div", { class: `item cat-${item.category}${item.done ? " done" : ""}${past ? " past" : ""}${isMissed ? " missed" : ""}${isNext ? " next" : ""}`, "data-id": item.id }, [
       el("label", { class: "check-hit" }, [
         el("input", {
           type: "checkbox",
           class: "checkbox",
           "aria-label": `Mark done: ${item.label}`,
           checked: item.done ? "checked" : null,
-          onchange: (e) => {
-            const s = new Set(done);
-            if (e.target.checked) s.add(item.id);
-            else s.delete(item.id);
-            state.done = [...s];
-            saveDayState(key, state);
-            render();
-          },
+          onchange: (e) => setDone(item, e.target.checked),
         }),
       ]),
       el("div", { class: "item-time" }, item.time),
       el("div", { class: "item-body" }, [
-        el("div", { class: "item-label" }, [`${CATEGORY_ICON[item.category] || ""} ${item.label}`, isNext ? el("span", { class: "chip" }, "Next") : null]),
+        el("div", { class: "item-label" }, [`${CATEGORY_ICON[item.category] || ""} ${item.label}`, isNext ? el("span", { class: "chip" }, "Next") : null, isMissed ? el("span", { class: "chip missed-chip" }, "Missed") : null]),
+        isMissed ? el("div", { class: "missed-hint" }, missedHint(item.id)) : null,
         item.notes ? el("div", { class: "item-notes", style: "white-space:pre-line" }, item.notes) : null,
         item.links && item.links.length
           ? el(
@@ -349,6 +382,23 @@ function renderToday() {
 
   return wrap;
 
+  function setDone(item, checked) {
+    const cur = loadDayState(key);
+    saveDayState(key, checked ? markDone(cur, item.id) : unmarkDone(cur, item.id));
+    render();
+    if (checked) {
+      showToast(`Marked ${item.label} done`, {
+        actionLabel: "Undo",
+        onAction: () => { saveDayState(key, unmarkDone(loadDayState(key), item.id)); render(); },
+      });
+    }
+  }
+
+  function snooze(item) {
+    if (snoozeItem(item)) showToast(`Snoozed ${item.label} for ${SNOOZE_MIN} min`);
+    else showToast("Turn on reminders in About to get snoozed alerts");
+  }
+
   function shiftDate(deltaDays) {
     const d = new Date(currentDate);
     d.setDate(d.getDate() + deltaDays);
@@ -418,4 +468,39 @@ function renderAbout() {
   return wrap;
 }
 
+// ---- Quick actions: deep links + messages from notification buttons ----
+function applyQuickAction(action, id, date) {
+  const target = parseDateKey(date) || new Date();
+  const k = dateKey(target);
+  if (action === "done") {
+    saveDayState(k, markDone(loadDayState(k), id));
+    const label = computeDay(target, loadDayState(k).overrides, new Set()).find((i) => i.id === id)?.label || "item";
+    render();
+    showToast(`Marked ${label} done`, {
+      actionLabel: "Undo",
+      onAction: () => { saveDayState(k, unmarkDone(loadDayState(k), id)); render(); },
+    });
+  } else if (action === "snooze") {
+    const st = loadDayState(k);
+    const item = computeDay(target, st.overrides, new Set(st.done)).find((i) => i.id === id);
+    if (item && snoozeItem(item)) showToast(`Snoozed ${item.label} for ${SNOOZE_MIN} min`);
+  }
+}
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("message", (ev) => {
+    const d = ev.data;
+    if (d && d.type === "planner-action") applyQuickAction(d.action, d.id, d.date);
+  });
+}
+
 render();
+{
+  const link = parseDeepLink(location.search);
+  if (link.tab && document.querySelector(`.tab[data-tab="${link.tab}"]`)) setTab(link.tab);
+  if (link.done) applyQuickAction("done", link.done, link.date);
+  else if (link.snooze) applyQuickAction("snooze", link.snooze, link.date);
+  if (link.tab || link.done || link.snooze) {
+    try { history.replaceState(null, "", location.pathname); } catch { /* ignore */ }
+  }
+}
