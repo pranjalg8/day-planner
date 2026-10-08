@@ -2,6 +2,7 @@ import { ACTIONS, WORKOUT } from "./data.js";
 import { dateKey, getLog, setWeight, addWater, setSteps, setSetsDone, weightHistory } from "./logstore.js";
 
 const GLASS_ML = 250;
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 function h(tag, attrs = {}, children = []) {
@@ -65,10 +66,32 @@ export function weightChart(points) {
   return svg;
 }
 
+// Which day the Log tab is editing (defaults to today; kept across re-renders).
+let logDate = new Date();
+
+function shiftLogDate(delta, rerender) {
+  const d = new Date(logDate);
+  d.setDate(d.getDate() + delta);
+  if (dateKey(d) > dateKey(new Date())) return; // no logging the future
+  logDate = d;
+  rerender();
+}
+
 export function renderLog(rerender) {
-  const key = dateKey(new Date());
+  const key = dateKey(logDate);
+  const isToday = key === dateKey(new Date());
   const log = getLog(key);
   const wrap = h("div", {});
+
+  wrap.appendChild(h("div", { class: "card" }, [
+    h("div", { class: "row" }, [
+      h("button", { class: "secondary", id: "log-prev", onclick: () => shiftLogDate(-1, rerender) }, "‹ Prev"),
+      h("strong", {}, `${isToday ? "Today" : WEEKDAYS[logDate.getDay()]}, ${key}`),
+      h("button", { class: "secondary", id: "log-next", disabled: isToday ? "disabled" : null, onclick: () => shiftLogDate(1, rerender) }, "Next ›"),
+      isToday ? null : h("button", { class: "secondary", onclick: () => { logDate = new Date(); rerender(); } }, "Today"),
+    ]),
+    isToday ? null : h("div", { class: "muted trk-small" }, "Editing a past day."),
+  ]));
 
   // Weight
   const hist = weightHistory(30);

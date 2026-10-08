@@ -1,9 +1,9 @@
 // Service worker: offline app shell. Bump CACHE when any listed file changes.
-const CACHE = "day-planner-v2";
+const CACHE = "day-planner-v3";
 const SHELL = [
   "./", "index.html", "style.css", "app.js", "engine.js", "data.js", "ics.js",
   "pwa.js", "theme.js", "a11y.js", "backup.js", "boot.js",
-  "log.js", "logstore.js", "meds.js", "week.js", "grouping.js", "progress.js",
+  "log.js", "reminders.js", "logstore.js", "meds.js", "week.js", "grouping.js", "progress.js",
   "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-maskable-512.png", "icons/apple-touch-icon.png",
 ];
@@ -34,5 +34,14 @@ self.addEventListener("fetch", (e) => {
         return res;
       }).catch(() => (req.mode === "navigate" ? caches.match("index.html") : Response.error()));
     })
+  );
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) =>
+      wins.length ? wins[0].focus() : self.clients.openWindow("./")
+    )
   );
 });
