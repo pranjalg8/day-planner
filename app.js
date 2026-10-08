@@ -2,6 +2,7 @@ import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./da
 import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, planDayNumber } from "./engine.js";
 import { buildICS, buildMultiDayICS, downloadICS } from "./ics.js";
 import { backupCard } from "./backup.js";
+import { remindersSupported, remindersEnabled, setRemindersEnabled, scheduleReminders } from "./reminders.js";
 import { renderLog } from "./log.js";
 import { renderWeekTab } from "./week.js";
 import { renderMedsTab } from "./meds.js";
@@ -55,6 +56,37 @@ function render() {
   else if (activeTab === "log") app.appendChild(renderLog(render));
   else if (activeTab === "meds") app.appendChild(renderMeds());
   else app.appendChild(renderAbout());
+  refreshReminders();
+}
+
+// Reminders always follow the real "today", whichever day/tab is on screen.
+function refreshReminders() {
+  const now = new Date();
+  const st = loadDayState(dateKey(now));
+  scheduleReminders(computeDay(now, st.overrides, new Set(st.done)));
+}
+
+function remindersCard() {
+  if (!remindersSupported()) {
+    return el("div", { class: "card" }, [
+      el("h2", {}, "Reminders"),
+      el("p", { class: "muted" }, "This browser doesn't support notifications. On iPhone, add the app to the Home Screen first."),
+    ]);
+  }
+  const on = remindersEnabled();
+  return el("div", { class: "card" }, [
+    el("h2", {}, "Reminders"),
+    el("p", { class: "muted" }, "Get a notification 2 minutes before each unchecked item. Works while the app is open or running in the background; a static site can't send true push notifications when it's fully closed."),
+    el("button", {
+      class: on ? "secondary" : "primary",
+      id: "reminders-toggle",
+      onclick: async () => {
+        const ok = await setRemindersEnabled(!on);
+        if (!ok && !on) alert("Notification permission was not granted.");
+        render();
+      },
+    }, on ? "Turn reminders off" : "Turn reminders on"),
+  ]);
 }
 
 function el(tag, attrs = {}, children = []) {
@@ -379,6 +411,7 @@ function renderAbout() {
       el("li", {}, "On iPhone, tap the downloaded .ics to open Calendar's add-event sheet. Add to Home Screen from Safari's share sheet for quick access."),
     ]),
   ]));
+  wrap.appendChild(remindersCard());
   wrap.appendChild(backupCard(render));
   return wrap;
 }
