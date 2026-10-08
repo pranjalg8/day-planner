@@ -3,7 +3,7 @@ const CACHE = "day-planner-v3";
 const SHELL = [
   "./", "index.html", "style.css", "app.js", "engine.js", "data.js", "ics.js",
   "pwa.js", "theme.js", "a11y.js", "backup.js", "boot.js",
-  "log.js", "reminders.js", "logstore.js", "meds.js", "week.js", "grouping.js", "progress.js",
+  "log.js", "reminders.js", "missed.js", "actions.js", "toast.js", "logstore.js", "meds.js", "week.js", "grouping.js", "progress.js",
   "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-maskable-512.png", "icons/apple-touch-icon.png",
 ];
@@ -39,9 +39,30 @@ self.addEventListener("fetch", (e) => {
 
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
+  if (e.action) return; // done/snooze handled by the handler at the end of this file
   e.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) =>
       wins.length ? wins[0].focus() : self.clients.openWindow("./")
     )
+  );
+});
+
+// === daily: notification action buttons (Done / Snooze) ===
+// The SW can't touch localStorage, so tell an open page to apply the action;
+// with no page open, open the app with a query string it applies on load.
+self.addEventListener("notificationclick", (e) => {
+  if (e.action !== "done" && e.action !== "snooze") return;
+  const data = e.notification.data || {};
+  if (!data.id) return;
+  e.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) => {
+      if (wins.length) {
+        wins.forEach((w) => w.postMessage({ type: "planner-action", action: e.action, id: data.id, date: data.date }));
+        return undefined;
+      }
+      const q = new URLSearchParams({ [e.action]: data.id });
+      if (data.date) q.set("date", data.date);
+      return self.clients.openWindow("./?" + q.toString());
+    })
   );
 });

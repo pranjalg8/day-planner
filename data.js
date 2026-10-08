@@ -46,6 +46,7 @@ export const MEDICINES = [
     offsetAfterMealMin: 5, // must be within 30 min after meal; 5 gives margin
     bufferAfterMin: 60,
     notes: "Take within 30 min after food. Nothing else for 1 hour after.",
+    missedHint: "Meant to be taken within 30 min after food. If that window has passed, don't double up; check with your doctor about what to do. Keep the 1-hour gap before other medicines.",
   },
   {
     id: "l-carnitine-am",
@@ -78,6 +79,7 @@ export const MEDICINES = [
     course: "weekly",
     offsetAfterMealMin: 15,
     notes: "Weekly dose — same slot as Evion L.",
+    missedHint: "Weekly dose: check with your doctor whether to take it late or wait for the next one.",
   },
   {
     id: "stable-n-fit-pm",
@@ -87,6 +89,7 @@ export const MEDICINES = [
     offsetAfterMealMin: 5,
     bufferAfterMin: 60,
     notes: "Take within 30 min after food. Nothing else for 1 hour after.",
+    missedHint: "Meant to be taken within 30 min after food. If that window has passed, don't double up; check with your doctor about what to do. Keep the 1-hour gap before other medicines.",
   },
   {
     id: "l-carnitine-pm",
