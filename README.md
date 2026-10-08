@@ -16,7 +16,7 @@ No build step — plain HTML/CSS/JS, deployable as-is on GitHub Pages.
 - **Week** — the 7-day meal rotation and daily targets at a glance.
 - **Workout** — morning warm-up + bodyweight circuit and evening stretching, with video links.
 - **Meds** — medicine reference table with dosing/timing notes.
-- **About** — how to use it day to day.
+- **About** — how to use it day to day, plus Export/Import of your data (JSON backup).
 
 ## Design choices
 
@@ -54,3 +54,24 @@ python3 -m http.server 8000
 ```
 
 Then open `http://localhost:8000`.
+
+## Install as an app (PWA)
+
+The site ships a web manifest and a service worker, so it works offline once
+loaded. On iPhone: Safari, Share, Add to Home Screen. On Android/desktop
+Chrome: use the install icon in the address bar or menu, Install app. The
+service worker only registers over HTTPS or `localhost`. When you change any
+cached file, bump `CACHE` in `sw.js` so installed copies update.
+
+The theme (Auto / Light / Dark) is switched with the button in the header.
+
+## Tests
+
+The schedule engine has dependency-free tests (Node 22+, `node:test`):
+
+```bash
+npm test
+```
+
+CI runs the same command on every push and pull request
+(`.github/workflows/test.yml`).

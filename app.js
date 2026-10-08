@@ -1,6 +1,7 @@
 import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./data.js";
 import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, planDayNumber } from "./engine.js";
 import { buildICS, downloadICS } from "./ics.js";
+import { backupCard } from "./backup.js";
 
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const CATEGORY_ICON = { food: "🍽️", medicine: "💊", exercise: "🚶", water: "💧", measure: "⚖️", prep: "🌰", workout: "🏋️" };
@@ -302,7 +303,8 @@ function renderMeds() {
 
 // ---- About tab ----
 function renderAbout() {
-  return el("div", { class: "card" }, [
+  const wrap = document.createDocumentFragment();
+  wrap.appendChild(el("div", { class: "card" }, [
     el("h2", {}, "About this planner"),
     el("p", {}, "A static, on-device day planner for a weight-management program: meal windows, medicine timing (including buffer rules), post-meal walks, water and step targets."),
     el("p", {}, "Nothing here is medical advice — it's a scheduling tool built from the plan you already have. Confirm anything medication-related with your doctor/coach."),
@@ -314,7 +316,9 @@ function renderAbout() {
       el("li", {}, "Tap “Download / update today's calendar” any time — it only includes items you haven't checked off, so re-importing later in the day won't duplicate what's already passed."),
       el("li", {}, "On iPhone, tap the downloaded .ics to open Calendar's add-event sheet. Add to Home Screen from Safari's share sheet for quick access."),
     ]),
-  ]);
+  ]));
+  wrap.appendChild(backupCard(render));
+  return wrap;
 }
 
 render();

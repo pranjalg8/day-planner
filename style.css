@@ -219,3 +219,57 @@ th { color: var(--muted); font-weight: 600; }
   font-size: 0.75rem;
   text-align: center;
 }
+
+/* === theme === */
+/* Manual override via <html data-theme="light|dark">; "auto" = attribute absent
+   (falls back to prefers-color-scheme rules at the top of this file). */
+:root {
+  --accent-text: #a83d1a;   /* >= 4.5:1 on --bg/--card/--accent-soft (light) */
+  --accent-strong: #b8451f; /* button fill, white text >= 4.5:1 */
+  --on-accent: #ffffff;
+  --focus: #1a5fd0;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --accent-text: #f0a384;
+    --accent-strong: #e98a63;
+    --on-accent: #1a0f0a;
+    --focus: #8ab4ff;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #faf7f5; --card: #ffffff; --text: #1c1a19; --muted: #6b625d;
+  --accent: #d9603b; --accent-soft: #fbe7de; --border: #ece5e1; --done: #8fae8b;
+  --accent-text: #a83d1a; --accent-strong: #b8451f; --on-accent: #ffffff; --focus: #1a5fd0;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #17130f; --card: #211c18; --text: #f3ede8; --muted: #a89c93;
+  --accent: #e98a63; --accent-soft: #3a281f; --border: #362e28; --done: #7fa27a;
+  --accent-text: #f0a384; --accent-strong: #e98a63; --on-accent: #1a0f0a; --focus: #8ab4ff;
+  color-scheme: dark;
+}
+.item-time, .tab.active, .chip { color: var(--accent-text); }
+button.primary { background: var(--accent-strong); color: var(--on-accent); }
+.muted, .item-notes, label.time-field, .footnote { color: var(--muted); }
+:root[data-theme="light"] .muted { color: #5f5651; }
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.theme-toggle {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.topbar { position: sticky; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
