@@ -396,3 +396,27 @@ details.block > summary .block-name { flex: 1; }
 }
 
 .cal-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* === plan === */
+.plan-form { display: grid; gap: 0.6rem; margin: 0.5rem 0; }
+.plan-form label, .time-field { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.85rem; color: var(--muted); }
+.plan-form input, .plan-form select, .meal-note-input { width: 100%; min-height: 2.5rem; font: inherit; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+.plan-list { list-style: none; margin: 0.5rem 0 0; padding: 0; }
+.plan-list li { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-top: 1px solid var(--border); }
+.plan-custom, .wk-off { background: var(--accent-soft); color: var(--accent); }
+.day-toggles { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.day-toggle { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 3rem; min-height: 2.5rem; padding: 0 0.7rem; border: 1px solid var(--border); border-radius: 999px; cursor: pointer; }
+.day-toggle input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.day-toggle.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.day-toggle:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.grocery-sub { font-size: 0.9rem; margin: 0.8rem 0 0.2rem; color: var(--muted); }
+.grocery-list { display: flex; flex-direction: column; }
+.grocery-row { display: flex; align-items: center; gap: 0.6rem; min-height: 2.5rem; border-bottom: 1px solid var(--border); cursor: pointer; }
+.grocery-row .checkbox { width: 1.4rem; height: 1.4rem; margin: 0; flex: none; }
+.grocery-name { flex: 1; text-transform: capitalize; }
+.grocery-qty { color: var(--muted); font-size: 0.85rem; text-align: right; }
+.grocery-row.got .grocery-name { text-decoration: line-through; opacity: 0.6; }
+.meal-note { margin-top: 0.25rem; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.meal-note-text { font-size: 0.85rem; color: var(--muted); width: 100%; white-space: pre-line; }
+.meal-note-input { flex: 1; min-width: 10rem; }
+.link-btn { background: none; border: none; padding: 0.3rem 0; min-height: 2rem; color: var(--accent); font: inherit; font-size: 0.82rem; cursor: pointer; text-decoration: underline; }
