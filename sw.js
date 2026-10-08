@@ -1,17 +1,25 @@
-// Service worker: offline app shell. Bump CACHE when any listed file changes.
-const CACHE = "day-planner-v3";
+// Service worker: offline app shell. Bump CACHE on every release that changes a
+// cached file (tests/shell.test.mjs fails if a repo file is missing from SHELL).
+// A new worker waits until the page asks it to activate (SKIP_WAITING message,
+// sent from the "New version available" banner in pwa.js).
+const CACHE = "day-planner-v4";
 const SHELL = [
   "./", "index.html", "style.css", "app.js", "engine.js", "data.js", "ics.js",
   "pwa.js", "theme.js", "a11y.js", "backup.js", "boot.js",
   "log.js", "reminders.js", "logstore.js", "meds.js", "week.js", "grouping.js", "progress.js",
+  "report.js", "reportdata.js",
   "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-maskable-512.png", "icons/apple-touch-icon.png",
 ];
 
+self.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();
+});
+
 self.addEventListener("install", (e) => {
   // Add individually so one missing optional file (other branches) doesn't abort install.
   e.waitUntil(
-    caches.open(CACHE).then((c) => Promise.all(SHELL.map((u) => c.add(u).catch(() => {})))).then(() => self.skipWaiting())
+    caches.open(CACHE).then((c) => Promise.all(SHELL.map((u) => c.add(u).catch(() => {}))))
   );
 });
 

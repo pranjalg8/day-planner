@@ -7,6 +7,7 @@ import { renderLog } from "./log.js";
 import { renderWeekTab } from "./week.js";
 import { renderMedsTab } from "./meds.js";
 import { groupItems } from "./grouping.js";
+import { reportCard } from "./report.js";
 import { loadHistory, saveHistory, recordDay, computeStreak } from "./progress.js";
 
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -412,6 +413,7 @@ function renderAbout() {
     ]),
   ]));
   wrap.appendChild(remindersCard());
+  wrap.appendChild(reportCard());
   wrap.appendChild(backupCard(render));
   return wrap;
 }

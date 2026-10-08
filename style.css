@@ -396,3 +396,21 @@ details.block > summary .block-name { flex: 1; }
 }
 
 .cal-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* === reliability === */
+.update-banner {
+  position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 50; display: flex; align-items: center; gap: 0.6rem;
+  max-width: 560px; margin: 0 auto; padding: 0.6rem 0.8rem;
+  background: var(--card); color: var(--text); border: 1px solid var(--accent-strong);
+  border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+.update-banner span { flex: 1; font-weight: 600; }
+.update-banner button { min-height: 2.5rem; border-radius: 8px; font: inherit; cursor: pointer; }
+.update-refresh { background: var(--accent-strong); color: var(--on-accent); border: 0; padding: 0 1rem; font-weight: 600; }
+.update-dismiss { background: transparent; color: var(--text); border: 1px solid var(--border); min-width: 2.5rem; font-size: 1.2rem; }
+.report-week { display: block; margin: 0.6rem 0; }
+.report-fields { border: 1px solid var(--border); border-radius: 8px; margin: 0.6rem 0; padding: 0.4rem 0.8rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; }
+.report-opt { display: inline-flex; align-items: center; gap: 0.3rem; min-height: 2.2rem; }
+.report-preview { white-space: pre-wrap; word-break: break-word; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; font-size: 0.85rem; max-height: 14rem; overflow: auto; }
+.report-status { min-height: 1.2em; margin: 0.4rem 0 0; }

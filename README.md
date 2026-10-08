@@ -16,7 +16,7 @@ No build step — plain HTML/CSS/JS, deployable as-is on GitHub Pages.
 - **Week** — the 7-day meal rotation and daily targets at a glance.
 - **Workout** — morning warm-up + bodyweight circuit and evening stretching, with video links.
 - **Meds** — medicine reference table with dosing/timing notes.
-- **About** — how to use it day to day, plus Export/Import of your data (JSON backup).
+- **About** — how to use it day to day, a **Share report** card (weekly Markdown summary for your coach: pick what to include, weight is off by default; Copy / Share / Download .md), plus Export/Import of your data (JSON backup).
 
 ## Design choices
 
@@ -60,8 +60,15 @@ Then open `http://localhost:8000`.
 The site ships a web manifest and a service worker, so it works offline once
 loaded. On iPhone: Safari, Share, Add to Home Screen. On Android/desktop
 Chrome: use the install icon in the address bar or menu, Install app. The
-service worker only registers over HTTPS or `localhost`. When you change any
-cached file, bump `CACHE` in `sw.js` so installed copies update.
+service worker only registers over HTTPS or `localhost`.
+
+**Releasing changes:** when any cached file changes, bump `CACHE` in `sw.js`
+(e.g. `day-planner-v5`) so installed copies fetch the new shell. Every new
+`.js`/`.css`/`.html`/icon file must also be listed in `SHELL` in `sw.js`;
+`tests/shell.test.mjs` fails CI if one is missing. An updated worker waits
+instead of taking over mid-session: the app shows a "New version available"
+banner, and tapping Refresh sends `SKIP_WAITING` and reloads once the new
+worker is active.
 
 The theme (Auto / Light / Dark) is switched with the button in the header.
 
@@ -75,3 +82,13 @@ npm test
 
 CI runs the same command on every push and pull request
 (`.github/workflows/test.yml`).
+
+A browser smoke test (opens every tab at 420px, fails on console/page errors
+or failed requests) is separate because it needs Playwright:
+
+```bash
+npm run smoke   # PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs to override
+```
+
+It skips with a message when Playwright or Chromium is unavailable. CI runs it
+in its own `smoke` job.
