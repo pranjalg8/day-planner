@@ -2,15 +2,11 @@
 // cached file (tests/shell.test.mjs fails if a repo file is missing from SHELL).
 // A new worker waits until the page asks it to activate (SKIP_WAITING message,
 // sent from the "New version available" banner in pwa.js).
-const CACHE = "day-planner-v4";
+const CACHE = "day-planner-v5";
 const SHELL = [
-  "./", "index.html", "style.css", "app.js", "engine.js", "data.js", "ics.js",
-  "pwa.js", "theme.js", "a11y.js", "backup.js", "boot.js",
-  "log.js", "reminders.js", "logstore.js", "meds.js", "week.js", "grouping.js", "progress.js",
-  "report.js", "reportdata.js",
-  "log.js", "reminders.js", "missed.js", "actions.js", "toast.js", "logstore.js", "meds.js", "week.js", "grouping.js", "progress.js",
-  "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png",
-  "icons/icon-maskable-512.png", "icons/apple-touch-icon.png",
+  "./", "index.html", "style.css", "manifest.webmanifest",
+  "a11y.js", "actions.js", "app.js", "backup.js", "boot.js", "data.js", "engine.js", "grocery.js", "grouping.js", "ics.js", "insights.js", "insightsdata.js", "log.js", "logstore.js", "meds.js", "missed.js", "plan.js", "planstore.js", "progress.js", "pwa.js", "reminders.js", "report.js", "reportdata.js", "theme.js", "toast.js", "week.js",
+  "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/icon.svg",
 ];
 
 self.addEventListener("message", (e) => {

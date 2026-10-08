@@ -185,3 +185,14 @@ export const WORKOUT = {
   ],
   stretch: { name: "Full body stretching", url: "https://youtu.be/7_Gmj7awnWY" },
 };
+
+// Evening prep reminders derived from the menu. Each entry means: the evening
+// BEFORE `weekday`'s `slot` meal, add a prep item (like "Soak almonds").
+// 0=Sun .. 6=Sat. If that meal is swapped for the day in the Plan tab, the
+// reminder is skipped.
+export const PREP_NOTES = [
+  { id: "moong-dal", slot: "breakfast", weekday: 2, label: "Soak moong dal for tomorrow's chilla", notes: "50g moong dal, soak overnight for Tuesday's breakfast." },
+  { id: "sprouts-sun", slot: "breakfast", weekday: 0, label: "Start/soak sprouts for tomorrow's chaat", notes: "60g sprouts for Sunday's breakfast — soak moong/chana tonight if not already sprouting." },
+  { id: "sprouts-tue", slot: "snack", weekday: 2, label: "Start/soak sprouts for tomorrow's snack", notes: "50g sprouts for Tuesday's snack — soak tonight if not already sprouting." },
+  { id: "sprouts-fri", slot: "snack", weekday: 5, label: "Start/soak sprouts for tomorrow's snack", notes: "50g sprouts for Friday's snack — soak tonight if not already sprouting." },
+];

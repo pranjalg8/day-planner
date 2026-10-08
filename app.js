@@ -8,6 +8,8 @@ import { markDone, unmarkDone, parseDeepLink, parseDateKey, SNOOZE_MIN } from ".
 import { showToast } from "./toast.js";
 import { renderLog } from "./log.js";
 import { renderWeekTab } from "./week.js";
+import { renderPlanTab, mealNoteWidget } from "./plan.js";
+import { effectiveTimes } from "./planstore.js";
 import { renderMedsTab } from "./meds.js";
 import { renderInsights } from "./insights.js";
 import { groupItems } from "./grouping.js";
@@ -57,6 +59,7 @@ function render() {
   app.innerHTML = "";
   if (activeTab === "today") app.appendChild(renderToday());
   else if (activeTab === "week") app.appendChild(renderWeek());
+  else if (activeTab === "plan") app.appendChild(renderPlanTab(render));
   else if (activeTab === "workout") app.appendChild(renderWorkout());
   else if (activeTab === "log") app.appendChild(renderLog(render));
   else if (activeTab === "meds") app.appendChild(renderMeds());
@@ -247,7 +250,7 @@ function renderToday() {
           fieldLabels[f],
           el("input", {
             type: "time",
-            value: overrides[f] || DEFAULT_TIMES[f],
+            value: overrides[f] || effectiveTimes()[f],
             onchange: (e) => {
               overrides[f] = e.target.value;
               state.overrides = overrides;
@@ -305,6 +308,7 @@ function renderToday() {
         el("div", { class: "item-label" }, [`${CATEGORY_ICON[item.category] || ""} ${item.label}`, isNext ? el("span", { class: "chip" }, "Next") : null, isMissed ? el("span", { class: "chip missed-chip" }, "Missed") : null]),
         isMissed ? el("div", { class: "missed-hint" }, missedHint(item.id)) : null,
         item.notes ? el("div", { class: "item-notes", style: "white-space:pre-line" }, item.notes) : null,
+        mealNoteWidget(key, item.id),
         item.links && item.links.length
           ? el(
               "div",
