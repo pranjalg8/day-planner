@@ -493,3 +493,7 @@ button.mini.primary { background: var(--accent-strong); color: var(--on-accent);
 .meal-note-text { font-size: 0.85rem; color: var(--muted); width: 100%; white-space: pre-line; }
 .meal-note-input { flex: 1; min-width: 10rem; }
 .link-btn { background: none; border: none; padding: 0.3rem 0; min-height: 2rem; color: var(--accent); font: inherit; font-size: 0.82rem; cursor: pointer; text-decoration: underline; }
+
+/* === nav === */
+/* Eight tabs don't fit one row at phone width; wrap instead of hiding some off-screen. */
+.tabs { flex-wrap: wrap; overflow-x: visible; row-gap: 0; }
