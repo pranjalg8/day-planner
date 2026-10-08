@@ -1,6 +1,9 @@
 import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./data.js";
 import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, planDayNumber } from "./engine.js";
 import { buildICS, downloadICS } from "./ics.js";
+import { renderLog } from "./log.js";
+import { renderWeekTab } from "./week.js";
+import { renderMedsTab } from "./meds.js";
 
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const CATEGORY_ICON = { food: "🍽️", medicine: "💊", exercise: "🚶", water: "💧", measure: "⚖️", prep: "🌰", workout: "🏋️" };
@@ -45,6 +48,7 @@ function render() {
   if (activeTab === "today") app.appendChild(renderToday());
   else if (activeTab === "week") app.appendChild(renderWeek());
   else if (activeTab === "workout") app.appendChild(renderWorkout());
+  else if (activeTab === "log") app.appendChild(renderLog(render));
   else if (activeTab === "meds") app.appendChild(renderMeds());
   else app.appendChild(renderAbout());
 }
@@ -216,35 +220,7 @@ function renderToday() {
 
 // ---- Week tab ----
 function renderWeek() {
-  const wrap = document.createDocumentFragment();
-  const table = el("table", {}, [
-    el("thead", {}, el("tr", {}, ["Day", "Early AM", "Breakfast", "Lunch", "Snack", "Dinner"].map((h) => el("th", {}, h)))),
-    el(
-      "tbody",
-      {},
-      WEEKDAY_NAMES.map((name, i) =>
-        el("tr", {}, [
-          el("td", {}, [name.slice(0, 3), i === PROGRAM.weeklyMedDayOfWeek ? el("span", { class: "chip" }, "D3") : null]),
-          el("td", {}, MENUS.earlyMorning[i]),
-          el("td", {}, MENUS.breakfast[i]),
-          el("td", {}, MENUS.lunch[i]),
-          el("td", {}, MENUS.snack[i]),
-          el("td", {}, MENUS.dinner[i]),
-        ])
-      )
-    ),
-  ]);
-  wrap.appendChild(el("div", { class: "card" }, [el("h2", {}, "Weekly menu rotation"), table]));
-  wrap.appendChild(
-    el("div", { class: "card" }, [
-      el("h2", {}, "Daily targets"),
-      el("div", {}, `Water: ${ACTIONS.waterTargetLitres}L/day`),
-      el("div", {}, `Steps: ${ACTIONS.stepTarget}/day`),
-      el("div", {}, `Walking: ${ACTIONS.walkTargetMin} min/day (covered by 3× ${ACTIONS.walkAfterMealMin}-min post-meal walks)`),
-      el("div", {}, `Cucumber: ${ACTIONS.cucumberSlices} slices to start breakfast, lunch, and dinner`),
-    ])
-  );
-  return wrap;
+  return renderWeekTab();
 }
 
 // ---- Workout tab ----
@@ -276,28 +252,7 @@ function renderWorkout() {
 
 // ---- Meds tab ----
 function renderMeds() {
-  const table = el("table", {}, [
-    el("thead", {}, el("tr", {}, ["Medicine", "Slot", "Course", "Notes"].map((h) => el("th", {}, h)))),
-    el(
-      "tbody",
-      {},
-      MEDICINES.map((m) =>
-        el("tr", {}, [
-          el("td", {}, m.name),
-          el("td", {}, m.slot),
-          el("td", {}, m.course),
-          el("td", { class: "muted" }, m.notes),
-        ])
-      )
-    ),
-  ]);
-  return el("div", {}, [
-    el("div", { class: "card" }, [
-      el("h2", {}, "Medicine reference"),
-      table,
-      el("div", { class: "muted", style: "margin-top:0.6rem" }, `Prescription review checkpoint: ${PROGRAM.reviewDate}`),
-    ]),
-  ]);
+  return renderMedsTab(render);
 }
 
 // ---- About tab ----
