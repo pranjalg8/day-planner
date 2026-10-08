@@ -6,6 +6,7 @@ import { remindersSupported, remindersEnabled, setRemindersEnabled, scheduleRemi
 import { renderLog } from "./log.js";
 import { renderWeekTab } from "./week.js";
 import { renderMedsTab } from "./meds.js";
+import { renderInsights } from "./insights.js";
 import { groupItems } from "./grouping.js";
 import { loadHistory, saveHistory, recordDay, computeStreak } from "./progress.js";
 
@@ -55,6 +56,7 @@ function render() {
   else if (activeTab === "workout") app.appendChild(renderWorkout());
   else if (activeTab === "log") app.appendChild(renderLog(render));
   else if (activeTab === "meds") app.appendChild(renderMeds());
+  else if (activeTab === "insights") app.appendChild(renderInsights(render));
   else app.appendChild(renderAbout());
   refreshReminders();
 }
