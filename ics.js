@@ -38,51 +38,51 @@ function description(item) {
   return parts.filter(Boolean).join("\n");
 }
 
+const HEADER = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//elevate-day-planner//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH"];
+
+function eventLines(dateObj, item) {
+  const [hh, mm] = item.time.split(":").map(Number);
+  const durationMin = item.durationMin ?? CATEGORY_DURATION_MIN[item.category] ?? 10;
+  const endMinutes = hh * 60 + mm + durationMin;
+  const endHH = Math.floor(endMinutes / 60) % 24;
+  const endMM = endMinutes % 60;
+  const endDate = new Date(dateObj);
+  endDate.setDate(endDate.getDate() + Math.floor(endMinutes / 1440));
+  const uid = `${item.id}-${dateObj.getFullYear()}${pad(dateObj.getMonth() + 1)}${pad(dateObj.getDate())}@elevate-day-planner`;
+  return [
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${icsNow()}`,
+    `DTSTART:${icsDateLocal(dateObj, hh, mm)}`,
+    `DTEND:${icsDateLocal(endDate, endHH, endMM)}`,
+    `SUMMARY:${escapeText(item.label)}`,
+    description(item) ? `DESCRIPTION:${escapeText(description(item))}` : null,
+    "BEGIN:VALARM",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:${escapeText(item.label)}`,
+    "TRIGGER:-PT2M",
+    "END:VALARM",
+    "END:VEVENT",
+  ];
+}
+
+/**
+ * Multi-day builder.
+ * @param {Array<{date: Date, items: Array}>} days
+ */
+export function buildMultiDayICS(days) {
+  const lines = [...HEADER];
+  for (const { date, items } of days) for (const item of items) lines.push(...eventLines(date, item));
+  lines.push("END:VCALENDAR");
+  return lines.filter(Boolean).join("\r\n");
+}
+
 /**
  * @param {Date} dateObj - the calendar day these items belong to.
  * @param {Array} items - output of computeDay(), only the ones to export.
  */
 export function buildICS(dateObj, items) {
-  const lines = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//elevate-day-planner//EN",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-  ];
-
-  for (const item of items) {
-    const [hh, mm] = item.time.split(":").map(Number);
-    const durationMin = item.durationMin ?? CATEGORY_DURATION_MIN[item.category] ?? 10;
-    const startMinutes = hh * 60 + mm;
-    const endMinutes = startMinutes + durationMin;
-    const endHH = Math.floor(endMinutes / 60) % 24;
-    const endMM = endMinutes % 60;
-    const dayOverflow = Math.floor(endMinutes / 1440);
-    const endDate = new Date(dateObj);
-    endDate.setDate(endDate.getDate() + dayOverflow);
-
-    const uid = `${item.id}-${dateObj.getFullYear()}${pad(dateObj.getMonth() + 1)}${pad(dateObj.getDate())}@elevate-day-planner`;
-
-    lines.push(
-      "BEGIN:VEVENT",
-      `UID:${uid}`,
-      `DTSTAMP:${icsNow()}`,
-      `DTSTART:${icsDateLocal(dateObj, hh, mm)}`,
-      `DTEND:${icsDateLocal(endDate, endHH, endMM)}`,
-      `SUMMARY:${escapeText(item.label)}`,
-      description(item) ? `DESCRIPTION:${escapeText(description(item))}` : null,
-      "BEGIN:VALARM",
-      "ACTION:DISPLAY",
-      `DESCRIPTION:${escapeText(item.label)}`,
-      "TRIGGER:-PT2M",
-      "END:VALARM",
-      "END:VEVENT"
-    );
-  }
-
-  lines.push("END:VCALENDAR");
-  return lines.filter(Boolean).join("\r\n");
+  return buildMultiDayICS([{ date: dateObj, items }]);
 }
 
 export function downloadICS(filename, icsText) {
