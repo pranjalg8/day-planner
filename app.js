@@ -36,6 +36,7 @@ let activeTab = "today";
 
 function setTab(tab) {
   activeTab = tab;
+  window.scrollTo(0, 0);
   document.querySelectorAll(".tab").forEach((el) => el.classList.toggle("active", el.dataset.tab === tab));
   render();
 }
