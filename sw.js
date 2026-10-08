@@ -1,8 +1,9 @@
 // Service worker: offline app shell. Bump CACHE when any listed file changes.
-const CACHE = "day-planner-v1";
+const CACHE = "day-planner-v2";
 const SHELL = [
   "./", "index.html", "style.css", "app.js", "engine.js", "data.js", "ics.js",
   "pwa.js", "theme.js", "a11y.js", "backup.js", "boot.js",
+  "log.js", "logstore.js", "meds.js", "week.js", "grouping.js", "progress.js",
   "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-maskable-512.png", "icons/apple-touch-icon.png",
 ];

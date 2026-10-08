@@ -301,3 +301,98 @@ button.primary { background: var(--accent-strong); color: var(--on-accent); }
 .wk-markers { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.35rem 0; }
 .wk-meal { display: flex; gap: 0.6rem; padding: 0.25rem 0; font-size: 0.88rem; }
 .wk-meal-l { flex: 0 0 4.6rem; color: var(--muted); font-weight: 600; }
+/* === today-ux === */
+.nextup {
+  position: sticky;
+  top: var(--topbar-h, 5rem);
+  z-index: 9;
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.9rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.nextup-none { background: var(--done); }
+.nextup-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; white-space: nowrap; }
+.nextup-text { font-size: 0.92rem; min-width: 0; }
+
+.progress-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+.streak { font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+.progress-bar { height: 10px; border-radius: 999px; background: var(--border); margin-top: 0.5rem; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--done); border-radius: 999px; transition: width 0.3s; }
+
+details.time-drawer > summary,
+details.block > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  min-height: 2.5rem;
+}
+details.time-drawer > summary::-webkit-details-marker,
+details.block > summary::-webkit-details-marker { display: none; }
+details.time-drawer > summary::after,
+details.block > summary::after { content: "▸"; color: var(--muted); margin-left: 0.5rem; transition: transform 0.15s; }
+details.time-drawer[open] > summary::after,
+details.block[open] > summary::after { transform: rotate(90deg); }
+details.time-drawer > summary { justify-content: flex-start; gap: 0.3rem; }
+details.time-drawer > summary::after { margin-left: auto; }
+details.block { border-top: 1px solid var(--border); }
+details.block > summary .block-name { flex: 1; }
+.block-count { font-size: 0.78rem; font-weight: 500; color: var(--muted); }
+.block-done .block-count { color: var(--done); }
+
+.item { border-left: 4px solid transparent; padding-left: 0.5rem; --cat: var(--border); }
+.item.cat-food { --cat: #e0a23b; }
+.item.cat-medicine { --cat: #7a6bd6; }
+.item.cat-exercise { --cat: #4fa36b; }
+.item.cat-workout { --cat: #d9603b; }
+.item.cat-water { --cat: #4a9fd6; }
+.item.cat-measure { --cat: #8a8a8a; }
+.item.cat-prep { --cat: #b5835a; }
+.item[class*="cat-"] {
+  border-left-color: var(--cat);
+  background: color-mix(in srgb, var(--cat) 8%, transparent);
+}
+.item.past:not(.done) { opacity: 0.6; }
+.item.next {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 8px;
+  scroll-margin-top: calc(var(--topbar-h, 5rem) + 4rem);
+}
+
+.check-hit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  margin: -0.4rem 0 -0.4rem -0.5rem;
+  cursor: pointer;
+}
+.item .checkbox { width: 1.6rem; height: 1.6rem; margin: 0; }
+
+.item-links { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem; }
+.pill-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.2rem 0.8rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--accent);
+}
+
+.cal-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
