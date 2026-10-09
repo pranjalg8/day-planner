@@ -6,8 +6,8 @@ import { computeDay } from "./engine.js";
 import { effectiveProgram } from "./planstore.js";
 import { STREAK_THRESHOLD } from "./progress.js";
 
-export const GOAL_KEY = "elevate-planner:goal";
-export const GLASS_L = 0.25;
+const GOAL_KEY = "elevate-planner:goal";
+const GLASS_L = 0.25;
 // Display groups -> engine categories.
 export const GROUPS = [
   { id: "meals", label: "Meals", cats: ["food"] },
@@ -26,11 +26,11 @@ export function parseKey(k) {
   const [y, m, d] = k.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
-export function addDays(d, n) {
+function addDays(d, n) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 /** Monday of the week containing d. */
-export function weekStart(d) {
+function weekStart(d) {
   return addDays(d, -((d.getDay() + 6) % 7));
 }
 
@@ -122,7 +122,7 @@ function logTotals(stats, log) {
 }
 
 /** Adherence per group + log totals for a list of day stats. */
-export function summarize(stats, log = {}) {
+function summarize(stats, log = {}) {
   const groups = {};
   for (const g of GROUPS) {
     let d = 0, t = 0;
@@ -169,7 +169,7 @@ export function heatmap(data, today = new Date(), weeks = 8) {
 }
 
 /** Weight points oldest first: [{date, kg}] */
-export function weightPoints(log) {
+function weightPoints(log) {
   return Object.keys(log)
     .filter((k) => /^\d{4}-\d{2}-\d{2}$/.test(k) && typeof log[k]?.weight === "number" && log[k].weight > 0)
     .sort()
@@ -254,4 +254,3 @@ export function buildInsights(data, today = new Date()) {
   };
 }
 
-export { ACTIONS };

@@ -16,7 +16,7 @@ function h(tag, attrs = {}, children = []) {
 
 function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
 
-export function daysUntil(isoDate, from = new Date()) {
+function daysUntil(isoDate, from = new Date()) {
   const target = new Date(isoDate + "T00:00:00");
   return Math.round((target - startOfDay(from)) / 86400000);
 }

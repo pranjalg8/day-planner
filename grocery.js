@@ -144,7 +144,7 @@ export function weekOf(now = new Date(), weekOffset = 0) {
 }
 
 // ---- checked-state storage: { [weekStartKey]: string[] } ----
-export const GROCERY_KEY = "elevate-planner:grocery";
+const GROCERY_KEY = "elevate-planner:grocery";
 
 export function loadChecked(weekKey) {
   try {

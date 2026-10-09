@@ -2,18 +2,18 @@
 // the DOM wiring only runs from initNav().
 export const PRIMARY_TABS = ["today", "log", "insights", "plan"];
 export const SECONDARY_TABS = ["week", "workout", "meds", "about"];
-export const ALL_TABS = [...PRIMARY_TABS, ...SECONDARY_TABS];
+const ALL_TABS = [...PRIMARY_TABS, ...SECONDARY_TABS];
 
 export const isSecondary = (tab) => SECONDARY_TABS.includes(tab);
 export const isKnownTab = (tab) => ALL_TABS.includes(tab);
 
 let sheet, backdrop, moreBtn;
 
-export function isMoreOpen() {
+function isMoreOpen() {
   return !!sheet && !sheet.hidden;
 }
 
-export function closeMore({ restoreFocus = false } = {}) {
+function closeMore({ restoreFocus = false } = {}) {
   if (!sheet || sheet.hidden) return;
   sheet.hidden = true;
   backdrop.hidden = true;
@@ -21,7 +21,7 @@ export function closeMore({ restoreFocus = false } = {}) {
   if (restoreFocus) moreBtn.focus();
 }
 
-export function openMore() {
+function openMore() {
   if (!sheet) return;
   sheet.hidden = false;
   backdrop.hidden = false;

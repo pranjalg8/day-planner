@@ -111,7 +111,6 @@ export function renderLog(rerender) {
   ]));
 
   // Water
-  const target = ACTIONS.waterTargetLitres * 1000;
   const glassTarget = glassesFor(ACTIONS.waterTargetLitres);
   wrap.appendChild(h("div", { class: "card" }, [
     h("h2", {}, "Water"),

@@ -58,7 +58,7 @@ function currentAnswers() {
 
 let openDialog = null;
 
-export function openOnboarding(rerender) {
+function openOnboarding(rerender) {
   if (openDialog) return;
   const answers = currentAnswers();
   let step = 0;

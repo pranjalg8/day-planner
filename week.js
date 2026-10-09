@@ -17,7 +17,7 @@ function h(tag, attrs = {}, children = []) {
 }
 
 // Monday-first week containing `now`.
-export function weekDates(now = new Date()) {
+function weekDates(now = new Date()) {
   const mondayOffset = (now.getDay() + 6) % 7;
   return Array.from({ length: 7 }, (_, i) => new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayOffset + i));
 }
