@@ -19,6 +19,7 @@ import { renderMedsTab } from "./meds.js";
 import { renderInsights } from "./insights.js";
 import { groupItems } from "./grouping.js";
 import { reportCard } from "./report.js";
+import { buildGlance, readFullSchedulePref, writeFullSchedulePref } from "./glance.js";
 import { loadHistory, saveHistory, recordDay, computeStreak } from "./progress.js";
 
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -210,8 +211,23 @@ function renderToday() {
   ]);
   wrap.appendChild(dateCard);
 
+  // Today at a glance + collapsible full schedule (everything below goes inside `fullBody`)
+  wrap.appendChild(buildGlance({
+    key, todayKey: dateKey(new Date()), isToday, items, nowMin,
+    goTab: (t) => setTab(t),
+    showNext: (item) => revealItem(item, fullDetails),
+  }));
+  const fullDetails = el("details", { class: "full-schedule", id: "full-schedule" }, [
+    el("summary", { class: "full-summary" }, `Full schedule · ${doneCount}/${items.length} done`),
+  ]);
+  if (readFullSchedulePref()) fullDetails.setAttribute("open", "");
+  fullDetails.addEventListener("toggle", () => writeFullSchedulePref(fullDetails.open));
+  const fullBody = el("div", { class: "full-body" });
+  fullDetails.appendChild(fullBody);
+  wrap.appendChild(fullDetails);
+
   // Progress
-  wrap.appendChild(
+  fullBody.appendChild(
     el("div", { class: "card progress-card" }, [
       el("div", { class: "progress-head" }, [
         el("strong", {}, `${doneCount} of ${items.length} done`),
@@ -288,7 +304,7 @@ function renderToday() {
   ]);
   if (timeDrawerOpen) timeCard.setAttribute("open", "");
   timeCard.addEventListener("toggle", () => { timeDrawerOpen = timeCard.open; });
-  wrap.appendChild(timeCard);
+  fullBody.appendChild(timeCard);
 
   // Grouped schedule
   const renderItem = (item) => {
@@ -342,7 +358,7 @@ function renderToday() {
       return d;
     }),
   ]);
-  wrap.appendChild(listCard);
+  fullBody.appendChild(listCard);
 
   // Calendar export
   const remaining = items.filter((i) => !i.done);
@@ -378,9 +394,9 @@ function renderToday() {
       ),
     ]),
   ]);
-  wrap.appendChild(calCard);
+  fullBody.appendChild(calCard);
 
-  if (scrollPending && isToday) {
+  if (scrollPending && isToday && readFullSchedulePref()) {
     scrollPending = false;
     requestAnimationFrame(() => {
       const target = document.querySelector(".item.next") || document.querySelector(".item:not(.done):not(.past)");
@@ -413,6 +429,15 @@ function renderToday() {
     currentDate = d;
     render();
   }
+}
+
+// Open the full schedule, expand the block holding `item`, and scroll to it.
+function revealItem(item, fullDetails) {
+  if (fullDetails) fullDetails.open = true;
+  const node = item && document.querySelector(`.item[data-id="${CSS.escape(item.id)}"]`);
+  if (!node) { if (fullDetails) fullDetails.scrollIntoView({ block: "start" }); return; }
+  for (let p = node.parentElement; p; p = p.parentElement) if (p.tagName === "DETAILS") p.open = true;
+  node.scrollIntoView({ block: "center" });
 }
 
 let timeDrawerOpen = false;
