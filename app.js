@@ -13,9 +13,6 @@ import { renderPlanTab, mealNoteWidget } from "./plan.js";
 import { effectiveTimes, effectiveProgram } from "./planstore.js";
 import { initNav, syncNav, isKnownTab } from "./nav.js";
 import { startOnboardingIfNeeded, setupCard } from "./onboarding.js";
-
-// Program dates are user-editable (Plan tab): `PROGRAM.x` reads the effective value live.
-const PROGRAM = new Proxy({}, { get: (_, k) => effectiveProgram()[k] });
 import { renderMedsTab } from "./meds.js";
 import { renderInsights } from "./insights.js";
 import { splitItems, bulkMarkable, nextUpcoming } from "./catchup.js";
@@ -187,8 +184,8 @@ function renderToday() {
       picker,
     ]),
     el("div", { class: "muted today-sub" }, [
-      planDayNumber(currentDate) ? `Plan day ${planDayNumber(currentDate)}` : `Plan starts ${PROGRAM.planStart}`,
-      dailyMedActive(currentDate) ? ` · Meds day ${dailyMedDayNumber(currentDate)}/${PROGRAM.dailyMedsCourseDays}` : "",
+      planDayNumber(currentDate) ? `Plan day ${planDayNumber(currentDate)}` : `Plan starts ${effectiveProgram().planStart}`,
+      dailyMedActive(currentDate) ? ` · Meds day ${dailyMedDayNumber(currentDate)}/${effectiveProgram().dailyMedsCourseDays}` : "",
       weeklyMedActiveToday(currentDate) ? el("span", { class: "chip" }, "Uprise-D3 day") : null,
     ]),
     isPast ? el("div", { class: "day-banner past", role: "note" }, "Catching up on a past day. Changes save to that date.") : null,
