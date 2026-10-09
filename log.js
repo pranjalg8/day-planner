@@ -1,7 +1,6 @@
 import { ACTIONS, WORKOUT } from "./data.js";
-import { dateKey, getLog, setWeight, addWater, setSteps, setSetsDone, weightHistory } from "./logstore.js";
+import { dateKey, getLog, setWeight, addWater, setSteps, setSetsDone, weightHistory, GLASS_ML, glassesFor } from "./logstore.js";
 
-const GLASS_ML = 250;
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -113,7 +112,7 @@ export function renderLog(rerender) {
 
   // Water
   const target = ACTIONS.waterTargetLitres * 1000;
-  const glassTarget = Math.ceil(target / GLASS_ML);
+  const glassTarget = glassesFor(ACTIONS.waterTargetLitres);
   wrap.appendChild(h("div", { class: "card" }, [
     h("h2", {}, "Water"),
     h("div", { class: "trk-form" }, [

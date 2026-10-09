@@ -588,3 +588,6 @@ body.ob-open { overflow: hidden; }
 .all-done { text-align: center; font-weight: 600; padding: 1.2rem; }
 .log-link { width: 100%; margin: 0.2rem 0 0.8rem; min-height: 2.8rem; }
 .tools > summary { cursor: pointer; font-weight: 600; min-height: 2.2rem; display: flex; align-items: center; gap: 0.5rem; }
+.water-row { display: flex; align-items: center; gap: 0.5rem; padding-top: 0.6rem; padding-bottom: 0.6rem; }
+.water-row .water-text { flex: 1; }
+.water-row button:disabled { opacity: 0.45; }

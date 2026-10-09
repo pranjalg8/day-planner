@@ -7,6 +7,7 @@ import { findMissed, missedHint } from "./missed.js";
 import { markDone, unmarkDone, parseDeepLink, parseDateKey, SNOOZE_MIN } from "./actions.js";
 import { showToast } from "./toast.js";
 import { renderLog } from "./log.js";
+import { getLog, addWater, glassesFor } from "./logstore.js";
 import { renderWeekTab } from "./week.js";
 import { renderPlanTab, mealNoteWidget } from "./plan.js";
 import { effectiveTimes, effectiveProgram } from "./planstore.js";
@@ -201,6 +202,20 @@ function renderToday() {
     ]),
   ]);
   wrap.appendChild(dateRow);
+
+  // ---- Water: a small counter (everything else is logged on the Log tab) ----
+  const glasses = getLog(key).water;
+  const glassGoal = glassesFor(ACTIONS.waterTargetLitres);
+  wrap.appendChild(
+    el("div", { class: "card water-row" }, [
+      el("div", { class: "water-text" }, [
+        el("strong", {}, `💧 ${glasses}/${glassGoal}`),
+        el("span", { class: "muted" }, " glasses"),
+      ]),
+      el("button", { class: "secondary icon-btn", id: "water-minus", "aria-label": "Remove a glass", disabled: isFuture || glasses === 0 ? "disabled" : null, onclick: () => { addWater(key, -1); render(); } }, "−"),
+      el("button", { class: "primary", id: "water-plus", disabled: isFuture ? "disabled" : null, onclick: () => { addWater(key, 1); render(); } }, "+ Glass"),
+    ])
+  );
 
   // ---- Rows ----
   const renderItem = (item) => {

@@ -2,6 +2,10 @@
 export const LOG_KEY = "elevate-planner:log";
 export const MEDS_KEY = "elevate-planner:meds";
 
+// One tap of the water counter = one glass.
+export const GLASS_ML = 250;
+export const glassesFor = (litres) => Math.ceil((litres * 1000) / GLASS_ML);
+
 export function dateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
