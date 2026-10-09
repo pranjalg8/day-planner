@@ -1,20 +1,33 @@
 // Accessibility helpers that don't require touching render code:
-// keeps tab aria-selected in sync, labels time checkboxes and inputs.
+// keeps the bottom bar's aria-current in sync, labels checkboxes/inputs, makes
+// scrollable tables keyboard reachable.
 const tabs = document.getElementById("tabs");
 function syncTabs() {
-  tabs.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.classList.contains("active"))));
+  tabs.querySelectorAll(".tab").forEach((t) => {
+    const isMore = t.id === "more-btn";
+    if (t.classList.contains("active")) t.setAttribute("aria-current", isMore ? "true" : "page");
+    else t.removeAttribute("aria-current");
+  });
 }
 if (tabs) {
-  tabs.setAttribute("role", "tablist");
-  tabs.setAttribute("aria-label", "Sections");
-  tabs.querySelectorAll(".tab").forEach((t) => { t.setAttribute("role", "tab"); });
   syncTabs();
   new MutationObserver(syncTabs).observe(tabs, { attributes: true, subtree: true, attributeFilter: ["class"] });
 }
 
 const app = document.getElementById("app");
 function label() {
-  app.setAttribute("role", "tabpanel");
+  // Wide tables scroll inside a focusable wrapper instead of stretching the page.
+  app.querySelectorAll("table").forEach((tb) => {
+    if (tb.parentElement.classList.contains("table-scroll")) return;
+    const wrap = document.createElement("div");
+    wrap.className = "table-scroll";
+    wrap.tabIndex = 0;
+    wrap.setAttribute("role", "region");
+    const h = tb.closest(".card")?.querySelector("h2")?.textContent?.trim();
+    wrap.setAttribute("aria-label", h ? `${h} table` : "Table");
+    tb.replaceWith(wrap);
+    wrap.appendChild(tb);
+  });
   app.querySelectorAll("input.checkbox:not([aria-label])").forEach((cb) => {
     const item = cb.closest(".item");
     const name = item?.querySelector(".item-label")?.textContent?.trim() || "item";

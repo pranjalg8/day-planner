@@ -20,7 +20,7 @@
     <h1>Day Planner</h1>
   </header>
 
-  <main id="app"></main>
+  <main id="main"><div id="app"></div></main>
 
   <footer class="footnote">
     Not medical advice — a scheduling tool built from your own program plan. Confirm
@@ -28,18 +28,18 @@
   </footer>
 
   <div class="more-backdrop" id="more-backdrop" hidden></div>
-  <div class="more-sheet" id="more-sheet" role="menu" aria-label="More sections" hidden>
-    <button type="button" role="menuitem" class="more-item" data-tab="week">Week</button>
-    <button type="button" role="menuitem" class="more-item" data-tab="workout">Workout</button>
-    <button type="button" role="menuitem" class="more-item" data-tab="meds">Meds</button>
-    <button type="button" role="menuitem" class="more-item" data-tab="about">About</button>
-  </div>
-  <nav class="tabbar" id="tabs" role="tablist" aria-label="Sections">
-    <button data-tab="today" class="tab active" role="tab" aria-selected="true"><span class="tab-ico" aria-hidden="true">🏠</span><span class="tab-txt">Today</span></button>
-    <button data-tab="log" class="tab" role="tab" aria-selected="false"><span class="tab-ico" aria-hidden="true">📝</span><span class="tab-txt">Log</span></button>
-    <button data-tab="insights" class="tab" role="tab" aria-selected="false"><span class="tab-ico" aria-hidden="true">📈</span><span class="tab-txt">Insights</span></button>
-    <button data-tab="plan" class="tab" role="tab" aria-selected="false"><span class="tab-ico" aria-hidden="true">🗓️</span><span class="tab-txt">Plan</span></button>
-    <button id="more-btn" class="tab" role="tab" aria-selected="false" aria-haspopup="menu" aria-expanded="false" aria-controls="more-sheet"><span class="tab-ico" aria-hidden="true">⋯</span><span class="tab-txt">More</span></button>
+  <nav class="more-sheet" id="more-sheet" aria-label="More sections" hidden>
+    <button type="button" class="more-item" data-tab="week">Week</button>
+    <button type="button" class="more-item" data-tab="workout">Workout</button>
+    <button type="button" class="more-item" data-tab="meds">Meds</button>
+    <button type="button" class="more-item" data-tab="about">About</button>
+  </nav>
+  <nav class="tabbar" id="tabs" aria-label="Main">
+    <button data-tab="today" class="tab active"><span class="tab-ico" aria-hidden="true">🏠</span><span class="tab-txt">Today</span></button>
+    <button data-tab="log" class="tab"><span class="tab-ico" aria-hidden="true">📝</span><span class="tab-txt">Log</span></button>
+    <button data-tab="insights" class="tab"><span class="tab-ico" aria-hidden="true">📈</span><span class="tab-txt">Insights</span></button>
+    <button data-tab="plan" class="tab"><span class="tab-ico" aria-hidden="true">🗓️</span><span class="tab-txt">Plan</span></button>
+    <button id="more-btn" class="tab" aria-haspopup="true" aria-expanded="false" aria-controls="more-sheet"><span class="tab-ico" aria-hidden="true">⋯</span><span class="tab-txt">More</span></button>
   </nav>
 
   <script type="module" src="app.js"></script>

@@ -158,7 +158,7 @@ function openOnboarding(rerender) {
     dialog.textContent = "";
     const last = step === STEPS.length - 1;
     dialog.append(
-      h("div", { class: "ob-progress", "aria-label": `Step ${step + 1} of ${STEPS.length}` }, STEPS.map((_, i) => h("span", { class: `ob-dot${i === step ? " on" : i < step ? " past" : ""}` }))),
+      h("div", { class: "ob-progress", role: "img", "aria-label": `Step ${step + 1} of ${STEPS.length}` }, STEPS.map((_, i) => h("span", { class: `ob-dot${i === step ? " on" : i < step ? " past" : ""}` }))),
       ...body().filter(Boolean),
       h("div", { class: "ob-actions" }, [
         h("button", { type: "button", class: "link-btn", id: "ob-skip", onclick: () => close() }, "Skip setup"),
