@@ -32,5 +32,6 @@ export function parseDateKey(key) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key || "");
   if (!m) return null;
   const d = new Date(+m[1], +m[2] - 1, +m[3]);
-  return Number.isNaN(d.getTime()) ? null : d;
+  // Reject impossible dates (Feb 30 would otherwise roll over to Mar 2).
+  return d.getFullYear() === +m[1] && d.getMonth() === +m[2] - 1 && d.getDate() === +m[3] ? d : null;
 }
