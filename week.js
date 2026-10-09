@@ -2,22 +2,13 @@ import { ACTIONS } from "./data.js";
 import { dailyMedActive, weeklyMedActiveToday } from "./engine.js";
 import { dateKey } from "./logstore.js";
 import { loadPlan, mealFor, effectiveWorkoutDays, offDayFor } from "./planstore.js";
+import { el as h } from "./dom.js";
 
 const SLOTS = { "Early AM": "earlyMorning", Breakfast: "breakfast", Lunch: "lunch", Snack: "snack", Dinner: "dinner" };
 const NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-function h(tag, attrs = {}, children = []) {
-  const n = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === "class") n.className = v;
-    else if (v !== null && v !== undefined) n.setAttribute(k, v);
-  }
-  for (const c of [].concat(children)) if (c != null) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-  return n;
-}
-
 // Monday-first week containing `now`.
-export function weekDates(now = new Date()) {
+function weekDates(now = new Date()) {
   const mondayOffset = (now.getDay() + 6) % 7;
   return Array.from({ length: 7 }, (_, i) => new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayOffset + i));
 }

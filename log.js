@@ -1,19 +1,9 @@
 import { ACTIONS, WORKOUT } from "./data.js";
 import { dateKey, getLog, setWeight, addWater, setSteps, setSetsDone, weightHistory, GLASS_ML, glassesFor } from "./logstore.js";
+import { el as h } from "./dom.js";
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const SVG_NS = "http://www.w3.org/2000/svg";
-
-function h(tag, attrs = {}, children = []) {
-  const n = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === "class") n.className = v;
-    else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
-    else if (v !== null && v !== undefined && v !== false) n.setAttribute(k, v);
-  }
-  for (const c of [].concat(children)) if (c != null) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-  return n;
-}
 
 function progress(frac, label) {
   const pct = Math.min(100, Math.round(frac * 100));
@@ -111,7 +101,6 @@ export function renderLog(rerender) {
   ]));
 
   // Water
-  const target = ACTIONS.waterTargetLitres * 1000;
   const glassTarget = glassesFor(ACTIONS.waterTargetLitres);
   wrap.appendChild(h("div", { class: "card" }, [
     h("h2", {}, "Water"),

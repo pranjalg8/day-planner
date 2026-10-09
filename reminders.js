@@ -84,7 +84,3 @@ export function snoozeItem(item, mins = SNOOZE_MIN) {
   snoozeTimers.set(item.id, setTimeout(() => { snoozeTimers.delete(item.id); notify(item); }, mins * 60000));
   return true;
 }
-
-export function snoozedUntil() {
-  return snoozeTimers.size;
-}

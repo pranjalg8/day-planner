@@ -13,10 +13,10 @@
 
 import { DEFAULT_TIMES, MENUS, WORKOUT, PROGRAM } from "./data.js";
 
-export const PLAN_KEY = "elevate-planner:plan";
+const PLAN_KEY = "elevate-planner:plan";
 export const MEAL_SLOTS = ["earlyMorning", "breakfast", "lunch", "snack", "dinner"];
 export const SLOT_LABELS = { earlyMorning: "Early morning", breakfast: "Breakfast", lunch: "Lunch", snack: "Snack", dinner: "Dinner" };
-export const DEFAULT_OFF_LABEL = "Off day";
+const DEFAULT_OFF_LABEL = "Off day";
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -201,15 +201,15 @@ export function setMealNote(key, slot, text) {
 // ---- editable program dates ----
 // PROGRAM in data.js stays the base default; the plan's `program` holds only the
 // fields the user changed. Read the effective values with effectiveProgram().
-export const PROGRAM_DATE_FIELDS = ["planStart", "dailyMedsCourseStart", "weeklyMedStart", "reviewDate"];
+const PROGRAM_DATE_FIELDS = ["planStart", "dailyMedsCourseStart", "weeklyMedStart", "reviewDate"];
 export const PROGRAM_NUM_FIELDS = { dailyMedsCourseDays: { min: 1, max: 365 }, weeklyMedCourseWeeks: { min: 1, max: 104 } };
 export const PROGRAM_FIELDS = ["planStart", "dailyMedsCourseStart", "dailyMedsCourseDays", "weeklyMedStart", "weeklyMedCourseWeeks", "reviewDate"];
 export const PROGRAM_LABELS = {
   planStart: "Plan start", dailyMedsCourseStart: "Daily medicine course start", dailyMedsCourseDays: "Daily medicine course length (days)",
   weeklyMedStart: "Weekly medicine first dose", weeklyMedCourseWeeks: "Weekly medicine course length (weeks)", reviewDate: "Review date",
 };
-export const PROGRAM_MIN_DATE = "2020-01-01";
-export const PROGRAM_MAX_DATE = "2100-12-31";
+const PROGRAM_MIN_DATE = "2020-01-01";
+const PROGRAM_MAX_DATE = "2100-12-31";
 
 /** True for a real calendar date written YYYY-MM-DD within the supported range. */
 export function isValidDateKey(s) {

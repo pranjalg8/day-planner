@@ -10,8 +10,8 @@ export const ONBOARDED_KEY = "elevate-planner-onboarded";
 export const STEPS = ["times", "workout", "weight", "reminders"];
 export const TIME_FIELDS = ["wake", "breakfast", "lunch", "dinner"];
 export const TIME_LABELS = { wake: "Wake up", breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner" };
-export const WEIGHT_MIN = 20;
-export const WEIGHT_MAX = 400; // same bounds as the Insights goal input
+const WEIGHT_MIN = 20;
+const WEIGHT_MAX = 400; // same bounds as the Insights goal input
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 /** "72.5" / "72,5" / 72.5 -> 72.5, "" -> null (not given), junk or out of range -> NaN. */

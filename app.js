@@ -1,7 +1,8 @@
-import { DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./data.js";
+import { ACTIONS, WORKOUT } from "./data.js";
 import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, planDayNumber } from "./engine.js";
 import { buildICS, buildMultiDayICS, downloadICS } from "./ics.js";
 import { backupCard } from "./backup.js";
+import { backupNudge } from "./backupnudge.js";
 import { remindersSupported, remindersEnabled, setRemindersEnabled, scheduleReminders, snoozeItem } from "./reminders.js";
 import { findMissed, missedHint } from "./missed.js";
 import { markDone, unmarkDone, parseDeepLink, parseDateKey, SNOOZE_MIN } from "./actions.js";
@@ -13,14 +14,12 @@ import { renderPlanTab, mealNoteWidget } from "./plan.js";
 import { effectiveTimes, effectiveProgram } from "./planstore.js";
 import { initNav, syncNav, isKnownTab } from "./nav.js";
 import { startOnboardingIfNeeded, setupCard } from "./onboarding.js";
-
-// Program dates are user-editable (Plan tab): `PROGRAM.x` reads the effective value live.
-const PROGRAM = new Proxy({}, { get: (_, k) => effectiveProgram()[k] });
 import { renderMedsTab } from "./meds.js";
 import { renderInsights } from "./insights.js";
 import { splitItems, bulkMarkable, nextUpcoming } from "./catchup.js";
 import { reportCard } from "./report.js";
 import { loadHistory, saveHistory, recordDay, computeStreak } from "./progress.js";
+import { el } from "./dom.js";
 
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const CATEGORY_ICON = { food: "🍽️", medicine: "💊", exercise: "🚶", water: "💧", measure: "⚖️", prep: "🌰", workout: "🏋️" };
@@ -101,20 +100,6 @@ function remindersCard() {
   ]);
 }
 
-function el(tag, attrs = {}, children = []) {
-  const node = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === "class") node.className = v;
-    else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2), v);
-    else if (v !== null && v !== undefined) node.setAttribute(k, v);
-  }
-  for (const child of [].concat(children)) {
-    if (child === null || child === undefined) continue;
-    node.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
-  }
-  return node;
-}
-
 // ---- Today tab ----
 let timeDrawerOpen = false; // keeps the tools drawer open across re-renders
 
@@ -135,6 +120,7 @@ function renderToday() {
   const nowMin = nowMinutes();
 
   const wrap = document.createDocumentFragment();
+  { const n = backupNudge(render); if (n) wrap.appendChild(n); }
 
   const items = computeDay(currentDate, overrides, done);
   const doneCount = items.filter((i) => i.done).length;
@@ -187,8 +173,8 @@ function renderToday() {
       picker,
     ]),
     el("div", { class: "muted today-sub" }, [
-      planDayNumber(currentDate) ? `Plan day ${planDayNumber(currentDate)}` : `Plan starts ${PROGRAM.planStart}`,
-      dailyMedActive(currentDate) ? ` · Meds day ${dailyMedDayNumber(currentDate)}/${PROGRAM.dailyMedsCourseDays}` : "",
+      planDayNumber(currentDate) ? `Plan day ${planDayNumber(currentDate)}` : `Plan starts ${effectiveProgram().planStart}`,
+      dailyMedActive(currentDate) ? ` · Meds day ${dailyMedDayNumber(currentDate)}/${effectiveProgram().dailyMedsCourseDays}` : "",
       weeklyMedActiveToday(currentDate) ? el("span", { class: "chip" }, "Uprise-D3 day") : null,
     ]),
     isPast ? el("div", { class: "day-banner past", role: "note" }, "Catching up on a past day. Changes save to that date.") : null,
