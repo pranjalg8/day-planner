@@ -1,19 +1,10 @@
 // Insights tab: DOM only. All numbers come from insightsdata.js.
 import { GROUPS, readAll, setGoal, buildInsights, linearTrend, trendText, parseKey } from "./insightsdata.js";
+import { el as h } from "./dom.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const DAY_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
 
-function h(tag, attrs = {}, children = []) {
-  const n = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === "class") n.className = v;
-    else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
-    else if (v !== null && v !== undefined && v !== false) n.setAttribute(k, v);
-  }
-  for (const c of [].concat(children)) if (c != null) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-  return n;
-}
 function svgEl(tag, attrs, text) {
   const n = document.createElementNS(SVG_NS, tag);
   for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);

@@ -18,6 +18,7 @@ import { renderInsights } from "./insights.js";
 import { splitItems, bulkMarkable, nextUpcoming } from "./catchup.js";
 import { reportCard } from "./report.js";
 import { loadHistory, saveHistory, recordDay, computeStreak } from "./progress.js";
+import { el } from "./dom.js";
 
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const CATEGORY_ICON = { food: "🍽️", medicine: "💊", exercise: "🚶", water: "💧", measure: "⚖️", prep: "🌰", workout: "🏋️" };
@@ -96,20 +97,6 @@ function remindersCard() {
       },
     }, on ? "Turn reminders off" : "Turn reminders on"),
   ]);
-}
-
-function el(tag, attrs = {}, children = []) {
-  const node = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === "class") node.className = v;
-    else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2), v);
-    else if (v !== null && v !== undefined) node.setAttribute(k, v);
-  }
-  for (const child of [].concat(children)) {
-    if (child === null || child === undefined) continue;
-    node.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
-  }
-  return node;
 }
 
 // ---- Today tab ----

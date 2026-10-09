@@ -4,18 +4,7 @@ import {
   PROGRAM_FIELDS, PROGRAM_LABELS, PROGRAM_NUM_FIELDS, loadPlan, savePlan, effectiveProgram,
   validateProgramInput, setProgramOverrides, resetProgram,
 } from "./planstore.js";
-
-function h(tag, attrs = {}, children = []) {
-  const n = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === "class") n.className = v;
-    else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
-    else if (k === "value") n.value = v;
-    else if (v !== null && v !== undefined) n.setAttribute(k, v);
-  }
-  for (const c of [].concat(children)) if (c != null) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-  return n;
-}
+import { el as h } from "./dom.js";
 
 export function programCard(rerender) {
   const plan = loadPlan();

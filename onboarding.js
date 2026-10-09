@@ -7,20 +7,9 @@ import { setWeight } from "./logstore.js";
 import { setGoal, readAll } from "./insightsdata.js";
 import { remindersSupported, remindersEnabled, setRemindersEnabled } from "./reminders.js";
 import { ONBOARDED_KEY, STEPS, TIME_FIELDS, TIME_LABELS, validateStep, validateAll, applyToPlan, sideEffects } from "./onboardingdata.js";
+import { el as h } from "./dom.js";
 
 const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-function h(tag, attrs = {}, children = []) {
-  const n = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === "class") n.className = v;
-    else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
-    else if (k === "value") n.value = v;
-    else if (v !== null && v !== undefined) n.setAttribute(k, v);
-  }
-  for (const c of [].concat(children)) if (c != null) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-  return n;
-}
 
 function isOnboarded() {
   try { return localStorage.getItem(ONBOARDED_KEY) === "1"; } catch { return true; } // no storage: never nag

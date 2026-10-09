@@ -6,6 +6,7 @@ import {
 } from "./planstore.js";
 import { groceryCard } from "./grocery.js";
 import { programCard } from "./programcard.js";
+import { el as h } from "./dom.js";
 
 const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const TIME_LABELS = {
@@ -14,18 +15,6 @@ const TIME_LABELS = {
 };
 // Today-tab meal item ids -> plan slots.
 const ITEM_SLOT = { "early-morning": "earlyMorning", breakfast: "breakfast", lunch: "lunch", snack: "snack", dinner: "dinner" };
-
-function h(tag, attrs = {}, children = []) {
-  const n = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === "class") n.className = v;
-    else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
-    else if (k === "value") n.value = v;
-    else if (v !== null && v !== undefined) n.setAttribute(k, v);
-  }
-  for (const c of [].concat(children)) if (c != null) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-  return n;
-}
 
 /**
  * Per-day meal note (text only) for a Today meal item. Returns a small DOM

@@ -4,6 +4,7 @@
 
 import { ACTIONS } from "./data.js";
 import { MEAL_SLOTS, SLOT_LABELS, mealFor, loadPlan, normalizePlan, dateKeyOf } from "./planstore.js";
+import { el as h } from "./dom.js";
 
 // ---- pure parsing ----
 const NOISE = /\b(raw|soaked|chopped|small|large|steamed|sauteed|sautéed|fresh|each|cooked)\b/g;
@@ -172,17 +173,6 @@ export function saveChecked(weekKey, set) {
 }
 
 // ---- DOM ----
-function h(tag, attrs = {}, children = []) {
-  const n = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (k === "class") n.className = v;
-    else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
-    else if (v !== null && v !== undefined) n.setAttribute(k, v);
-  }
-  for (const c of [].concat(children)) if (c != null) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-  return n;
-}
-
 let weekOffset = 0;
 
 export function groceryCard(rerender) {
