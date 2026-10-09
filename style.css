@@ -531,3 +531,14 @@ body.ob-open { overflow: hidden; }
 .water-row { display: flex; align-items: center; gap: 0.5rem; padding-top: 0.6rem; padding-bottom: 0.6rem; }
 .water-row .water-text { flex: 1; }
 .water-row button:disabled { opacity: 0.45; }
+
+/* === backup === */
+.bk-nudge { border-left: 4px solid var(--accent-strong, var(--accent)); }
+.bk-nudge-msg { margin: 0 0 0.6rem; font-weight: 600; }
+.bk-last { margin: 0 0 0.2rem; font-weight: 600; }
+.bk-summary { margin: 0 0 0.6rem; font-size: 0.85rem; }
+.bk-undo { margin-top: 0.5rem; align-items: center; }
+.bk-dialog p { margin: 0.5rem 0; }
+.bk-warn { color: var(--accent-text, var(--text)); font-weight: 700; }
+.bk-actions { flex-wrap: wrap; justify-content: stretch; }
+.bk-actions button { flex: 1 1 100%; min-height: 2.75rem; }
