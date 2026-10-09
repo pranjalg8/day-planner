@@ -1,4 +1,4 @@
-import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./data.js";
+import { DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./data.js";
 import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, planDayNumber } from "./engine.js";
 import { buildICS, buildMultiDayICS, downloadICS } from "./ics.js";
 import { backupCard } from "./backup.js";
@@ -9,7 +9,12 @@ import { showToast } from "./toast.js";
 import { renderLog } from "./log.js";
 import { renderWeekTab } from "./week.js";
 import { renderPlanTab, mealNoteWidget } from "./plan.js";
-import { effectiveTimes } from "./planstore.js";
+import { effectiveTimes, effectiveProgram } from "./planstore.js";
+import { initNav, syncNav, isKnownTab } from "./nav.js";
+import { startOnboardingIfNeeded, setupCard } from "./onboarding.js";
+
+// Program dates are user-editable (Plan tab): `PROGRAM.x` reads the effective value live.
+const PROGRAM = new Proxy({}, { get: (_, k) => effectiveProgram()[k] });
 import { renderMedsTab } from "./meds.js";
 import { renderInsights } from "./insights.js";
 import { groupItems } from "./grouping.js";
@@ -45,14 +50,11 @@ let activeTab = "today";
 function setTab(tab) {
   activeTab = tab;
   window.scrollTo(0, 0);
-  document.querySelectorAll(".tab").forEach((el) => el.classList.toggle("active", el.dataset.tab === tab));
+  syncNav(tab);
   render();
 }
 
-document.getElementById("tabs").addEventListener("click", (e) => {
-  const btn = e.target.closest("button[data-tab]");
-  if (btn) setTab(btn.dataset.tab);
-});
+initNav(setTab);
 
 function render() {
   const app = document.getElementById("app");
@@ -469,6 +471,7 @@ function renderAbout() {
     ]),
   ]));
   wrap.appendChild(remindersCard());
+  wrap.appendChild(setupCard(render));
   wrap.appendChild(reportCard());
   wrap.appendChild(backupCard(render));
   return wrap;
@@ -500,10 +503,11 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+startOnboardingIfNeeded(render);
 render();
 {
   const link = parseDeepLink(location.search);
-  if (link.tab && document.querySelector(`.tab[data-tab="${link.tab}"]`)) setTab(link.tab);
+  if (link.tab && isKnownTab(link.tab)) setTab(link.tab);
   if (link.done) applyQuickAction("done", link.done, link.date);
   else if (link.snooze) applyQuickAction("snooze", link.snooze, link.date);
   if (link.tab || link.done || link.snooze) {

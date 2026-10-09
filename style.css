@@ -497,3 +497,69 @@ button.mini.primary { background: var(--accent-strong); color: var(--on-accent);
 /* === nav === */
 /* Eight tabs don't fit one row at phone width; wrap instead of hiding some off-screen. */
 .tabs { flex-wrap: wrap; overflow-x: visible; row-gap: 0; }
+
+/* === shell === */
+[hidden] { display: none !important; }
+:root { --tabbar-h: 4rem; }
+body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 1rem); }
+.topbar { padding-bottom: 0.75rem; }
+.topbar h1 { margin: 0; padding-right: 7rem; }
+.theme-toggle { top: 0.8rem; }
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: flex; flex-wrap: nowrap; overflow: visible; gap: 0;
+  background: var(--card); border-top: 1px solid var(--border);
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+.tabbar .tab {
+  flex: 1 1 0; min-width: 0; min-height: var(--tabbar-h);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1rem;
+  padding: 0.35rem 0.15rem; border: 0; border-top: 3px solid transparent; border-radius: 0;
+  background: none; color: var(--muted); font: inherit; font-size: 0.74rem; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tabbar .tab-ico { font-size: 1.35rem; line-height: 1; }
+.tabbar .tab.active { color: var(--accent-text); border-top-color: var(--accent-strong); border-bottom: 0; font-weight: 700; background: var(--accent-soft); }
+.more-backdrop { position: fixed; inset: 0; z-index: 38; background: rgba(0, 0, 0, 0.35); }
+.more-sheet {
+  position: fixed; right: 0.75rem; left: 0.75rem; max-width: 20rem; margin-left: auto;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 0.5rem); z-index: 39;
+  display: flex; flex-direction: column; padding: 0.35rem;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+}
+.more-item {
+  min-height: 3rem; padding: 0 1rem; text-align: left; border: 0; border-radius: 10px;
+  background: none; color: var(--text); font: inherit; font-size: 1rem; cursor: pointer;
+}
+.more-item.active { background: var(--accent-soft); color: var(--accent-text); font-weight: 700; }
+.more-item:hover { background: var(--accent-soft); }
+#toast-host { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 0.75rem); }
+.footnote { margin-bottom: 0.5rem; }
+
+/* onboarding */
+body.ob-open { overflow: hidden; }
+.ob-overlay { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, 0.5); display: flex; align-items: flex-end; justify-content: center; }
+.ob-dialog {
+  width: 100%; max-width: 32rem; max-height: 92vh; overflow-y: auto; background: var(--card); color: var(--text);
+  border-radius: 18px 18px 0 0; padding: 1.1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+}
+.ob-dialog h2 { margin: 0.6rem 0 0.2rem; font-size: 1.15rem; }
+.ob-progress { display: flex; gap: 0.35rem; }
+.ob-dot { width: 1.6rem; height: 0.3rem; border-radius: 99px; background: var(--border); }
+.ob-dot.past, .ob-dot.on { background: var(--accent-strong); }
+.ob-dot.past { opacity: 0.55; }
+.ob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin: 0.6rem 0; }
+.ob-grid label, .ob-check { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.85rem; color: var(--muted); }
+.ob-grid input { width: 100%; min-height: 2.75rem; font: inherit; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+.ob-check { flex-direction: row; align-items: center; gap: 0.6rem; min-height: 2.75rem; font-size: 0.95rem; color: var(--text); }
+.ob-check input { width: 1.4rem; height: 1.4rem; }
+.ob-small { font-size: 0.8rem; }
+.ob-err, .form-errors { color: #b3261e; font-size: 0.82rem; }
+:root[data-theme="dark"] .ob-err, :root[data-theme="dark"] .form-errors { color: #ff9a92; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ob-err, :root:not([data-theme="light"]) .form-errors { color: #ff9a92; } }
+.form-errors p { margin: 0.2rem 0; }
+.ob-actions { display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.ob-actions .link-btn { margin-right: auto; }
+.ob-actions button:not(.link-btn) { min-height: 2.75rem; }
+#plan-program label.changed { color: var(--accent-text); font-weight: 600; }
+#plan-program input[aria-invalid="true"] { border-color: #b3261e; }

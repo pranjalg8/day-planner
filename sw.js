@@ -5,7 +5,7 @@
 const CACHE = "day-planner-v5";
 const SHELL = [
   "./", "index.html", "style.css", "manifest.webmanifest",
-  "a11y.js", "actions.js", "app.js", "backup.js", "boot.js", "data.js", "engine.js", "grocery.js", "grouping.js", "ics.js", "insights.js", "insightsdata.js", "log.js", "logstore.js", "meds.js", "missed.js", "plan.js", "planstore.js", "progress.js", "pwa.js", "reminders.js", "report.js", "reportdata.js", "theme.js", "toast.js", "week.js",
+  "a11y.js", "actions.js", "app.js", "backup.js", "boot.js", "data.js", "engine.js", "grocery.js", "grouping.js", "ics.js", "insights.js", "insightsdata.js", "log.js", "logstore.js", "meds.js", "missed.js", "nav.js", "onboarding.js", "onboardingdata.js", "plan.js", "planstore.js", "programcard.js", "progress.js", "pwa.js", "reminders.js", "report.js", "reportdata.js", "theme.js", "toast.js", "week.js",
   "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/icon.svg",
 ];
 

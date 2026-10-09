@@ -2,8 +2,8 @@
 // times into an ordered list of timed items. No DOM, no storage — easy to
 // reason about and to re-run whenever an actual time changes.
 
-import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT, PREP_NOTES } from "./data.js";
-import { loadPlan, normalizePlan, offDayFor, dateKeyOf } from "./planstore.js";
+import { DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT, PREP_NOTES } from "./data.js";
+import { loadPlan, normalizePlan, offDayFor, dateKeyOf, effectiveProgram } from "./planstore.js";
 
 export function toMinutes(hhmm) {
   const [h, m] = hhmm.split(":").map(Number);
@@ -23,27 +23,31 @@ function daysBetween(aISO, bDate) {
   return Math.round((b - a) / 86400000);
 }
 
-export function planDayNumber(dateObj) {
-  const n = daysBetween(PROGRAM.planStart, dateObj) + 1;
+// The helpers below take an optional plan (default: the saved plan) so edited
+// program dates (planstore.js effectiveProgram) are honoured everywhere.
+export function planDayNumber(dateObj, plan = loadPlan()) {
+  const n = daysBetween(effectiveProgram(plan).planStart, dateObj) + 1;
   return n >= 1 ? n : null;
 }
 
-export function dailyMedDayNumber(dateObj) {
-  const n = daysBetween(PROGRAM.dailyMedsCourseStart, dateObj) + 1;
+export function dailyMedDayNumber(dateObj, plan = loadPlan()) {
+  const n = daysBetween(effectiveProgram(plan).dailyMedsCourseStart, dateObj) + 1;
   return n;
 }
 
-export function dailyMedActive(dateObj) {
-  const n = dailyMedDayNumber(dateObj);
-  return n >= 1 && n <= PROGRAM.dailyMedsCourseDays;
+export function dailyMedActive(dateObj, plan = loadPlan()) {
+  const P = effectiveProgram(plan);
+  const n = dailyMedDayNumber(dateObj, plan);
+  return n >= 1 && n <= P.dailyMedsCourseDays;
 }
 
-export function weeklyMedActiveToday(dateObj) {
-  if (dateObj.getDay() !== PROGRAM.weeklyMedDayOfWeek) return false;
-  const startDiff = daysBetween(PROGRAM.weeklyMedStart, dateObj);
+export function weeklyMedActiveToday(dateObj, plan = loadPlan()) {
+  const P = effectiveProgram(plan);
+  if (dateObj.getDay() !== P.weeklyMedDayOfWeek) return false;
+  const startDiff = daysBetween(P.weeklyMedStart, dateObj);
   if (startDiff < 0) return false;
   const weekNumber = Math.floor(startDiff / 7) + 1;
-  return weekNumber <= PROGRAM.weeklyMedCourseWeeks;
+  return weekNumber <= P.weeklyMedCourseWeeks;
 }
 
 /**
@@ -103,7 +107,7 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set(), plan = 
   meal("breakfast", "breakfast", `Breakfast (start with ${ACTIONS.cucumberSlices} slices cucumber)`);
   if (!off) push("walk-breakfast", "exercise", toHHMM(breakfastMin + 5), `${ACTIONS.walkAfterMealMin}-min walk`, "Post-breakfast walk.");
 
-  const dailyActive = dailyMedActive(dateObj);
+  const dailyActive = dailyMedActive(dateObj, plan);
   const stableAM = MEDICINES.find((m) => m.id === "stable-n-fit-am");
   const stableAMTime = breakfastMin + stableAM.offsetAfterMealMin;
   const clearEndAM = stableAMTime + stableAM.bufferAfterMin;
@@ -123,7 +127,7 @@ export function computeDay(dateObj, overrides = {}, doneIds = new Set(), plan = 
   if (dailyActive) {
     push(evion.id, "medicine", toHHMM(lunchMin + evion.offsetAfterMealMin), evion.name, evion.notes);
   }
-  if (weeklyMedActiveToday(dateObj)) {
+  if (weeklyMedActiveToday(dateObj, plan)) {
     const d3 = MEDICINES.find((m) => m.id === "uprise-d3-60k");
     push(d3.id, "medicine", toHHMM(lunchMin + d3.offsetAfterMealMin), d3.name, d3.notes);
   }

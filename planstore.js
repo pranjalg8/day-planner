@@ -7,8 +7,11 @@
 //   off:         [{ from, to, label }]                           off-day / vacation ranges
 //   workoutDays: [0..6] | null                                   null = WORKOUT.days from data.js
 //   times:       { wake: "06:15", ... }                          edited default times
+//   program:     { planStart, dailyMedsCourseStart, dailyMedsCourseDays,
+//                  weeklyMedStart, weeklyMedCourseWeeks, reviewDate }
+//                partial overrides of data.js PROGRAM (see effectiveProgram)
 
-import { DEFAULT_TIMES, MENUS, WORKOUT } from "./data.js";
+import { DEFAULT_TIMES, MENUS, WORKOUT, PROGRAM } from "./data.js";
 
 export const PLAN_KEY = "elevate-planner:plan";
 export const MEAL_SLOTS = ["earlyMorning", "breakfast", "lunch", "snack", "dinner"];
@@ -22,7 +25,7 @@ export function dateKeyOf(d) {
 }
 
 export function emptyPlan() {
-  return { meals: {}, off: [], workoutDays: null, times: {} };
+  return { meals: {}, off: [], workoutDays: null, times: {}, program: {} };
 }
 
 /** Sanitise any value into a well-formed plan (never throws). */
@@ -54,12 +57,13 @@ export function normalizePlan(raw) {
   if (raw.times && typeof raw.times === "object") {
     for (const k of Object.keys(DEFAULT_TIMES)) if (typeof raw.times[k] === "string" && TIME_RE.test(raw.times[k])) plan.times[k] = raw.times[k];
   }
+  plan.program = sanitizeProgram(raw.program);
   return plan;
 }
 
 export function isEmptyPlan(plan) {
   const p = normalizePlan(plan);
-  return !Object.keys(p.meals).length && !p.off.length && p.workoutDays === null && !Object.keys(p.times).length;
+  return !Object.keys(p.meals).length && !p.off.length && p.workoutDays === null && !Object.keys(p.times).length && !Object.keys(p.program).length;
 }
 
 // ---- storage ----
@@ -192,4 +196,104 @@ export function setMealNote(key, slot, text) {
   } catch {
     return false;
   }
+}
+
+// ---- editable program dates ----
+// PROGRAM in data.js stays the base default; the plan's `program` holds only the
+// fields the user changed. Read the effective values with effectiveProgram().
+export const PROGRAM_DATE_FIELDS = ["planStart", "dailyMedsCourseStart", "weeklyMedStart", "reviewDate"];
+export const PROGRAM_NUM_FIELDS = { dailyMedsCourseDays: { min: 1, max: 365 }, weeklyMedCourseWeeks: { min: 1, max: 104 } };
+export const PROGRAM_FIELDS = ["planStart", "dailyMedsCourseStart", "dailyMedsCourseDays", "weeklyMedStart", "weeklyMedCourseWeeks", "reviewDate"];
+export const PROGRAM_LABELS = {
+  planStart: "Plan start", dailyMedsCourseStart: "Daily medicine course start", dailyMedsCourseDays: "Daily medicine course length (days)",
+  weeklyMedStart: "Weekly medicine first dose", weeklyMedCourseWeeks: "Weekly medicine course length (weeks)", reviewDate: "Review date",
+};
+export const PROGRAM_MIN_DATE = "2020-01-01";
+export const PROGRAM_MAX_DATE = "2100-12-31";
+
+/** True for a real calendar date written YYYY-MM-DD within the supported range. */
+export function isValidDateKey(s) {
+  if (typeof s !== "string" || !DATE_RE.test(s) || s < PROGRAM_MIN_DATE || s > PROGRAM_MAX_DATE) return false;
+  const [y, m, d] = s.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+}
+
+function parseCount(v, { min, max }) {
+  const n = typeof v === "string" ? (v.trim() === "" ? NaN : Number(v)) : v;
+  return Number.isInteger(n) && n >= min && n <= max ? n : null;
+}
+
+/** Keep only well-formed, field-wise valid values that differ from the base PROGRAM. */
+function sanitizeProgram(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object") return out;
+  for (const f of PROGRAM_DATE_FIELDS) if (isValidDateKey(raw[f]) && raw[f] !== PROGRAM[f]) out[f] = raw[f];
+  for (const [f, range] of Object.entries(PROGRAM_NUM_FIELDS)) {
+    const n = parseCount(raw[f], range);
+    if (n !== null && n !== PROGRAM[f]) out[f] = n;
+  }
+  return out;
+}
+
+function weekdayOf(key) {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d).getDay();
+}
+
+/**
+ * PROGRAM with the plan's edits applied (the single source of truth for
+ * program dates). weeklyMedDayOfWeek follows the weekday of weeklyMedStart when
+ * that date is edited, so the first dose always lands on the start date.
+ */
+export function effectiveProgram(plan = loadPlan()) {
+  const o = normalizePlan(plan).program;
+  const eff = { ...PROGRAM, ...o };
+  if (o.weeklyMedStart) eff.weeklyMedDayOfWeek = weekdayOf(o.weeklyMedStart);
+  return eff;
+}
+
+/**
+ * Validate form input (strings or numbers) for all six fields.
+ * Returns { ok, errors: {field: message}, value: {all six fields, normalised} }.
+ */
+export function validateProgramInput(input) {
+  const errors = {};
+  const value = {};
+  const src = input && typeof input === "object" ? input : {};
+  for (const f of PROGRAM_DATE_FIELDS) {
+    const v = typeof src[f] === "string" ? src[f].trim() : src[f];
+    if (!v) errors[f] = `${PROGRAM_LABELS[f]}: pick a date.`;
+    else if (!isValidDateKey(v)) errors[f] = `${PROGRAM_LABELS[f]}: that is not a valid date between ${PROGRAM_MIN_DATE.slice(0, 4)} and ${PROGRAM_MAX_DATE.slice(0, 4)}.`;
+    else value[f] = v;
+  }
+  for (const [f, range] of Object.entries(PROGRAM_NUM_FIELDS)) {
+    const n = parseCount(src[f], range);
+    if (n === null) errors[f] = `${PROGRAM_LABELS[f]}: enter a whole number from ${range.min} to ${range.max}.`;
+    else value[f] = n;
+  }
+  if (!errors.reviewDate && !errors.dailyMedsCourseStart && value.reviewDate < value.dailyMedsCourseStart) {
+    errors.reviewDate = "Review date: it cannot be before the daily medicine course start.";
+  }
+  return { ok: Object.keys(errors).length === 0, errors, value };
+}
+
+/**
+ * Pure: store the six program fields on a plan, keeping only values that differ
+ * from the data.js defaults. Throws nothing; invalid input leaves the plan as is
+ * (call validateProgramInput first to show errors).
+ */
+export function setProgramOverrides(plan, input) {
+  const p = normalizePlan(plan);
+  const v = validateProgramInput(input);
+  if (!v.ok) return p;
+  p.program = sanitizeProgram(v.value);
+  return p;
+}
+
+/** Pure: drop all program edits from a plan. */
+export function resetProgram(plan) {
+  const p = normalizePlan(plan);
+  p.program = {};
+  return p;
 }

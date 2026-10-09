@@ -1,4 +1,5 @@
-import { PROGRAM, MEDICINES } from "./data.js";
+import { MEDICINES } from "./data.js";
+import { effectiveProgram } from "./planstore.js";
 import { computeDay, dailyMedActive, dailyMedDayNumber, weeklyMedActiveToday } from "./engine.js";
 import { dateKey, getTaken, setTaken } from "./logstore.js";
 
@@ -22,6 +23,7 @@ export function daysUntil(isoDate, from = new Date()) {
 
 export function renderMedsTab(rerender) {
   const now = new Date();
+  const PROGRAM = effectiveProgram();
   const key = dateKey(now);
   const taken = getTaken(key);
   const doses = computeDay(now).filter((i) => i.category === "medicine");

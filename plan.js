@@ -5,6 +5,7 @@ import {
   setMealOverride, addOffRange, removeOffRange, setWorkoutDays, setDefaultTime, getMealNote, setMealNote,
 } from "./planstore.js";
 import { groceryCard } from "./grocery.js";
+import { programCard } from "./programcard.js";
 
 const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const TIME_LABELS = {
@@ -154,7 +155,10 @@ export function renderPlanTab(rerender) {
         }),
         h("span", {}, name),
       ]))),
-    plan.workoutDays ? h("div", { class: "actions-row" }, [h("button", { class: "secondary", onclick: () => commit(setWorkoutDays(plan, null)) }, "Back to program default")]) : null,
+    h("div", { class: "actions-row" }, [
+      plan.workoutDays ? h("button", { class: "secondary", onclick: () => commit(setWorkoutDays(plan, null)) }, "Back to program default") : null,
+      h("button", { class: "secondary", id: "plan-open-workout", type: "button", onclick: () => document.dispatchEvent(new CustomEvent("planner:tab", { detail: "workout" })) }, "View workout routine"),
+    ]),
   ]);
   wrap.appendChild(wkCard);
 
@@ -171,12 +175,14 @@ export function renderPlanTab(rerender) {
     Object.keys(plan.times).length ? h("div", { class: "actions-row" }, [h("button", { class: "secondary", onclick: () => commit({ ...plan, times: {} }) }, "Reset times")]) : null,
   ]));
 
+  wrap.appendChild(programCard(rerender));
+
   wrap.appendChild(groceryCard(rerender));
 
   // ---- Reset ----
   wrap.appendChild(h("div", { class: "card", id: "plan-reset" }, [
     h("h2", {}, "Reset"),
-    h("p", { class: "muted" }, "Removes all swaps, off days, workout-day and default-time changes. Checked items, logs and meal notes are kept."),
+    h("p", { class: "muted" }, "Removes all swaps, off days, workout-day, default-time and program-date changes. Checked items, logs and meal notes are kept."),
     h("button", {
       class: "secondary", id: "plan-reset-btn", disabled: isEmptyPlan(plan) ? "disabled" : null,
       onclick: () => { if (confirm("Reset the plan to program defaults?")) { clearPlan(); rerender(); } },
