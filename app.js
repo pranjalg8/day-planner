@@ -17,9 +17,8 @@ import { startOnboardingIfNeeded, setupCard } from "./onboarding.js";
 const PROGRAM = new Proxy({}, { get: (_, k) => effectiveProgram()[k] });
 import { renderMedsTab } from "./meds.js";
 import { renderInsights } from "./insights.js";
-import { groupItems } from "./grouping.js";
+import { splitItems, bulkMarkable, nextUpcoming } from "./catchup.js";
 import { reportCard } from "./report.js";
-import { buildGlance, readFullSchedulePref, writeFullSchedulePref } from "./glance.js";
 import { loadHistory, saveHistory, recordDay, computeStreak } from "./progress.js";
 
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -116,8 +115,7 @@ function el(tag, attrs = {}, children = []) {
 }
 
 // ---- Today tab ----
-let scrollPending = true; // auto-scroll to "now" on first load / when jumping to Today
-const blockOpen = new Map(); // `${dateKey}:${blockId}` -> user's open/closed choice
+let timeDrawerOpen = false; // keeps the tools drawer open across re-renders
 
 function nowMinutes() {
   const n = new Date();
@@ -129,24 +127,24 @@ function renderToday() {
   const state = loadDayState(key);
   const overrides = { ...state.overrides };
   const done = new Set(state.done);
-  const isToday = key === dateKey(new Date());
+  const todayKey = dateKey(new Date());
+  const isToday = key === todayKey;
+  const isPast = key < todayKey;
+  const isFuture = key > todayKey;
   const nowMin = nowMinutes();
 
   const wrap = document.createDocumentFragment();
 
-  // Computed schedule (needed up-front for progress + next-up bar)
   const items = computeDay(currentDate, overrides, done);
   const doneCount = items.filter((i) => i.done).length;
   const pct = items.length ? Math.round((doneCount / items.length) * 100) : 0;
-  const nextItem = isToday ? items.find((i) => !i.done && i.minutes >= nowMin) : null;
-  const isPast = key < dateKey(new Date());
-  const isFuture = key > dateKey(new Date());
+  const { catchUp, upcoming, done: doneItems } = splitItems(items, { isToday, isPast, nowMin });
+  const nextItem = nextUpcoming(upcoming, isToday);
   const missed = findMissed(items, { isToday, isPast, nowMin });
   const missedIds = new Set(missed.map((i) => i.id));
 
   // History + streak (only real days up to today are recorded)
   let history = loadHistory();
-  const todayKey = dateKey(new Date());
   if (key <= todayKey && items.length) {
     const prev = history[key];
     if (!prev || prev.done !== doneCount || prev.total !== items.length) {
@@ -156,91 +154,149 @@ function renderToday() {
   }
   const streak = computeStreak(history, todayKey);
 
-  // Sticky "Next up" bar
-  const topbar = document.querySelector(".topbar");
-  if (topbar) document.documentElement.style.setProperty("--topbar-h", `${topbar.offsetHeight}px`);
-  if (isToday) {
+  // ---- Header: one slim row ----
+  const picker = el("input", {
+    type: "date",
+    id: "date-picker",
+    class: "date-input",
+    value: key,
+    "aria-label": "Jump to date",
+    onchange: (e) => {
+      const d = parseDateKey(e.target.value);
+      if (!d) return;
+      currentDate = d;
+      render();
+    },
+  });
+  const dateLabel = isToday ? "Today" : WEEKDAY_NAMES[currentDate.getDay()];
+  const dateRow = el("div", { class: "card today-head" }, [
+    el("div", { class: "today-nav" }, [
+      el("button", { class: "secondary icon-btn", "aria-label": "Previous day", onclick: () => shiftDate(-1) }, "‹"),
+      el("div", { class: "today-title" }, [
+        el("strong", {}, dateLabel),
+        el("span", { class: "muted" }, ` ${currentDate.toLocaleDateString(undefined, { weekday: isToday ? "short" : undefined, day: "numeric", month: "short" })}`),
+      ]),
+      el("button", { class: "secondary icon-btn", "aria-label": "Next day", onclick: () => shiftDate(1) }, "›"),
+      el("button", {
+        class: "secondary icon-btn",
+        "aria-label": "Pick a date",
+        onclick: () => { try { picker.showPicker(); } catch { picker.focus(); picker.click(); } },
+      }, "📅"),
+      isToday ? null : el("button", { class: "secondary", onclick: () => { currentDate = new Date(); render(); } }, "Today"),
+      picker,
+    ]),
+    el("div", { class: "muted today-sub" }, [
+      planDayNumber(currentDate) ? `Plan day ${planDayNumber(currentDate)}` : `Plan starts ${PROGRAM.planStart}`,
+      dailyMedActive(currentDate) ? ` · Meds day ${dailyMedDayNumber(currentDate)}/${PROGRAM.dailyMedsCourseDays}` : "",
+      weeklyMedActiveToday(currentDate) ? el("span", { class: "chip" }, "Uprise-D3 day") : null,
+    ]),
+    isPast ? el("div", { class: "day-banner past", role: "note" }, "Catching up on a past day. Changes save to that date.") : null,
+    isFuture ? el("div", { class: "day-banner future", role: "note" }, "Planning ahead. Checks save to that date.") : null,
+    el("div", { class: "progress-head" }, [
+      el("strong", {}, `${doneCount} of ${items.length} done`),
+      el("span", { class: "streak", title: "Consecutive days with at least 80% completion" }, `🔥 ${streak}`),
+    ]),
+    el("div", { class: "progress-bar", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(pct) }, [
+      el("div", { class: "progress-fill", style: `width:${pct}%` }),
+    ]),
+  ]);
+  wrap.appendChild(dateRow);
+
+  // ---- Rows ----
+  const renderItem = (item) => {
+    const isMissed = missedIds.has(item.id);
+    const isNext = nextItem && item.id === nextItem.id;
+    const hasExtra = isMissed || Boolean(item.notes) || (item.links && item.links.length);
+    const row = el("div", { class: `item cat-${item.category}${item.done ? " done" : ""}${isMissed ? " missed" : ""}${isNext ? " next" : ""}`, "data-id": item.id }, [
+      el("label", { class: "check-hit" }, [
+        el("input", {
+          type: "checkbox",
+          class: "checkbox",
+          "aria-label": `Mark done: ${item.label}`,
+          checked: item.done ? "checked" : null,
+          onchange: (e) => setDone(item, e.target.checked),
+        }),
+      ]),
+      el("div", { class: "item-time" }, item.time),
+      el("div", { class: "item-body" }, [
+        el("button", {
+          type: "button",
+          class: "item-label item-toggle",
+          "aria-expanded": "false",
+          onclick: (e) => {
+            const open = row.classList.toggle("open");
+            e.currentTarget.setAttribute("aria-expanded", String(open));
+          },
+        }, [
+          `${CATEGORY_ICON[item.category] || ""} ${item.label}`,
+          isNext ? el("span", { class: "chip" }, "Next") : null,
+          isMissed ? el("span", { class: "chip missed-chip" }, "Missed") : null,
+          hasExtra ? el("span", { class: "more-dot", "aria-hidden": "true" }, "▾") : null,
+        ]),
+        el("div", { class: "item-extra" }, [
+          isMissed ? el("div", { class: "missed-hint" }, missedHint(item.id)) : null,
+          item.notes ? el("div", { class: "item-notes", style: "white-space:pre-line" }, item.notes) : null,
+          mealNoteWidget(key, item.id),
+          item.links && item.links.length
+            ? el("div", { class: "item-links" }, item.links.map((l) => el("a", { class: "pill-link", href: l.url, target: "_blank", rel: "noopener" }, `▶ ${l.name}`)))
+            : null,
+        ]),
+      ]),
+    ]);
+    return row;
+  };
+
+  // ---- Catch up (what you forgot to tick earlier) ----
+  if (catchUp.length) {
+    const bulk = bulkMarkable(catchUp);
     wrap.appendChild(
-      el("div", { class: `nextup${nextItem ? "" : " nextup-none"}` }, [
-        el("span", { class: "nextup-label" }, "Next up"),
-        nextItem
-          ? el("span", { class: "nextup-text" }, [el("strong", {}, nextItem.time), ` ${nextItem.label}`])
-          : el("span", { class: "nextup-text" }, items.every((i) => i.done) ? "All done for today 🎉" : "Nothing left on the clock today"),
-        nextItem
-          ? el("span", { class: "nextup-actions" }, [
-              el("button", { class: "mini", "data-act": "snooze", onclick: () => snooze(nextItem) }, `Snooze ${SNOOZE_MIN}m`),
-              el("button", { class: "mini primary", "data-act": "done", onclick: () => setDone(nextItem, true) }, "Done"),
-            ])
+      el("div", { class: "card section-catchup" }, [
+        el("div", { class: "section-head" }, [
+          el("h2", {}, isPast ? "To tick off" : "Catch up"),
+          el("span", { class: "muted" }, `${catchUp.length} earlier`),
+        ]),
+        bulk.length
+          ? el("button", { class: "primary bulk-btn", id: "mark-all-earlier", onclick: () => markMany(bulk) }, `✓ Mark ${bulk.length === catchUp.length ? "all" : "all except medicines"} as done`)
           : null,
+        bulk.length && bulk.length < catchUp.length
+          ? el("div", { class: "muted bulk-note" }, "Medicines are ticked one at a time so your record stays accurate.")
+          : null,
+        el("div", {}, catchUp.map(renderItem)),
       ])
     );
   }
 
-  // Date + day-shift controls
-  const dateCard = el("div", { class: "card" }, [
-    el("div", { class: "row" }, [
-      el("button", { class: "secondary", onclick: () => shiftDate(-1) }, "‹ Prev"),
-      el("strong", {}, `${WEEKDAY_NAMES[currentDate.getDay()]}, ${key}`),
-      el("button", { class: "secondary", onclick: () => shiftDate(1) }, "Next ›"),
-      el("button", { class: "secondary", onclick: () => { currentDate = new Date(); scrollPending = true; render(); } }, "Today"),
-    ]),
-    el("label", { class: "date-pick" }, [
-      "Jump to date ",
-      el("input", {
-        type: "date",
-        id: "date-picker",
-        value: key,
-        onchange: (e) => {
-          const d = parseDateKey(e.target.value);
-          if (!d) return;
-          currentDate = d;
-          scrollPending = true;
-          render();
-        },
-      }),
-    ]),
-    isPast ? el("div", { class: "day-banner past", role: "note" }, "Editing a past day. Changes are saved to that date.") : null,
-    isFuture ? el("div", { class: "day-banner future", role: "note" }, "Planning ahead. This is a future day; times and checks are saved to that date.") : null,
-    planDayNumber(currentDate)
-      ? el("div", { class: "muted" }, `Plan day ${planDayNumber(currentDate)}`)
-      : el("div", { class: "muted" }, `Plan starts ${PROGRAM.planStart}`),
-    dailyMedActive(currentDate)
-      ? el("div", { class: "muted" }, `Daily meds: day ${dailyMedDayNumber(currentDate)} of ${PROGRAM.dailyMedsCourseDays}`)
-      : el("div", { class: "muted" }, "Daily 30-day medicine course is not active on this date."),
-    weeklyMedActiveToday(currentDate) ? el("div", { class: "chip" }, "Uprise-D3 day") : null,
-  ]);
-  wrap.appendChild(dateCard);
+  // ---- Coming up ----
+  if (upcoming.length) {
+    wrap.appendChild(
+      el("div", { class: "card" }, [
+        el("div", { class: "section-head" }, [
+          el("h2", {}, isFuture ? "Planned" : "Coming up"),
+          el("span", { class: "muted" }, `${upcoming.length} left`),
+        ]),
+        el("div", {}, upcoming.map(renderItem)),
+      ])
+    );
+  } else if (!catchUp.length && items.length) {
+    wrap.appendChild(el("div", { class: "card all-done" }, "All done for this day 🎉"));
+  }
 
-  // Today at a glance + collapsible full schedule (everything below goes inside `fullBody`)
-  wrap.appendChild(buildGlance({
-    key, todayKey: dateKey(new Date()), isToday, items, nowMin,
-    goTab: (t) => setTab(t),
-    showNext: (item) => revealItem(item, fullDetails),
-  }));
-  const fullDetails = el("details", { class: "full-schedule", id: "full-schedule" }, [
-    el("summary", { class: "full-summary" }, `Full schedule · ${doneCount}/${items.length} done`),
-  ]);
-  if (readFullSchedulePref()) fullDetails.setAttribute("open", "");
-  fullDetails.addEventListener("toggle", () => writeFullSchedulePref(fullDetails.open));
-  const fullBody = el("div", { class: "full-body" });
-  fullDetails.appendChild(fullBody);
-  wrap.appendChild(fullDetails);
+  // ---- Done (collapsed) ----
+  if (doneItems.length) {
+    wrap.appendChild(
+      el("details", { class: "card done-section" }, [
+        el("summary", {}, `Done · ${doneItems.length}`),
+        el("div", {}, doneItems.map(renderItem)),
+      ])
+    );
+  }
 
-  // Progress
-  fullBody.appendChild(
-    el("div", { class: "card progress-card" }, [
-      el("div", { class: "progress-head" }, [
-        el("strong", {}, `${doneCount} of ${items.length} done`),
-        missed.length ? el("span", { class: "missed-count", id: "missed-count" }, `${missed.length} missed`) : null,
-        el("span", { class: "streak", title: "Consecutive days with at least 80% completion" }, `🔥 ${streak}-day streak`),
-      ]),
-      el("div", { class: "progress-bar", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(pct) }, [
-        el("div", { class: "progress-fill", style: `width:${pct}%` }),
-      ]),
-    ])
+  // ---- Log shortcut (water, steps, weight, sets live on the Log tab) ----
+  wrap.appendChild(
+    el("button", { class: "secondary log-link", id: "go-log", onclick: () => setTab("log") }, "Log water, steps, weight & sets →")
   );
 
-  // Actual-time overrides, collapsed by default
+  // ---- Tools: adjust times + calendar, tucked away ----
   const timeFields = ["wake", "earlyMorning", "workout", "breakfast", "lunch", "snack", "stretch", "dinner", "bedtime"];
   const fieldLabels = {
     wake: "Wake",
@@ -254,12 +310,13 @@ function renderToday() {
     bedtime: "Bedtime",
   };
   const overrideCount = Object.keys(overrides).length;
-  const timeCard = el("details", { class: "card time-drawer" }, [
+  const remaining = items.filter((i) => !i.done);
+  const tools = el("details", { class: "card time-drawer tools" }, [
     el("summary", {}, [
-      "Adjust times",
+      "Adjust times & calendar",
       overrideCount ? el("span", { class: "chip" }, `${overrideCount} changed`) : null,
     ]),
-    el("div", { class: "muted", style: "margin-top:0.5rem" }, "Running late or early? Change any time below — everything tied to it (medicine buffers, walks) recomputes automatically."),
+    el("div", { class: "muted", style: "margin-top:0.5rem" }, "Running late or early? Change a time and everything tied to it (medicine buffers, walks) recomputes."),
     el(
       "div",
       { class: "row", style: "margin-top:0.5rem" },
@@ -281,128 +338,44 @@ function renderToday() {
       )
     ),
     el("div", { class: "actions-row" }, [
-      el(
-        "button",
-        {
-          class: "secondary",
-          onclick: () => {
-            if (!overrideCount) return;
-            if (!confirm("Reset all adjusted times for this day to the defaults?")) return;
-            const before = { ...overrides };
-            state.overrides = {};
-            saveDayState(key, state);
-            render();
-            showToast("Times reset to defaults", {
-              actionLabel: "Undo",
-              onAction: () => { const s2 = loadDayState(key); s2.overrides = before; saveDayState(key, s2); render(); },
-            });
-          },
+      el("button", {
+        class: "secondary",
+        onclick: () => {
+          if (!overrideCount) return;
+          if (!confirm("Reset all adjusted times for this day to the defaults?")) return;
+          const before = { ...overrides };
+          state.overrides = {};
+          saveDayState(key, state);
+          render();
+          showToast("Times reset to defaults", {
+            actionLabel: "Undo",
+            onAction: () => { const s2 = loadDayState(key); s2.overrides = before; saveDayState(key, s2); render(); },
+          });
         },
-        "Reset to defaults"
-      ),
+      }, "Reset times"),
     ]),
-  ]);
-  if (timeDrawerOpen) timeCard.setAttribute("open", "");
-  timeCard.addEventListener("toggle", () => { timeDrawerOpen = timeCard.open; });
-  fullBody.appendChild(timeCard);
-
-  // Grouped schedule
-  const renderItem = (item) => {
-    const past = isToday && !item.done && item.minutes < nowMin;
-    const isMissed = missedIds.has(item.id);
-    const isNext = nextItem && item.id === nextItem.id;
-    return el("div", { class: `item cat-${item.category}${item.done ? " done" : ""}${past ? " past" : ""}${isMissed ? " missed" : ""}${isNext ? " next" : ""}`, "data-id": item.id }, [
-      el("label", { class: "check-hit" }, [
-        el("input", {
-          type: "checkbox",
-          class: "checkbox",
-          "aria-label": `Mark done: ${item.label}`,
-          checked: item.done ? "checked" : null,
-          onchange: (e) => setDone(item, e.target.checked),
-        }),
-      ]),
-      el("div", { class: "item-time" }, item.time),
-      el("div", { class: "item-body" }, [
-        el("div", { class: "item-label" }, [`${CATEGORY_ICON[item.category] || ""} ${item.label}`, isNext ? el("span", { class: "chip" }, "Next") : null, isMissed ? el("span", { class: "chip missed-chip" }, "Missed") : null]),
-        isMissed ? el("div", { class: "missed-hint" }, missedHint(item.id)) : null,
-        item.notes ? el("div", { class: "item-notes", style: "white-space:pre-line" }, item.notes) : null,
-        mealNoteWidget(key, item.id),
-        item.links && item.links.length
-          ? el(
-              "div",
-              { class: "item-links" },
-              item.links.map((l) => el("a", { class: "pill-link", href: l.url, target: "_blank", rel: "noopener" }, `▶ ${l.name}`))
-            )
-          : null,
-      ]),
-    ]);
-  };
-
-  const blocks = groupItems(items);
-  const listCard = el("div", { class: "card" }, [
-    el("h2", {}, isToday ? "Today's schedule" : "Schedule"),
-    ...blocks.map((b) => {
-      const bk = `${key}:${b.id}`;
-      const allDone = b.doneCount === b.count;
-      const containsNext = nextItem && b.items.some((i) => i.id === nextItem.id);
-      const open = blockOpen.has(bk) ? blockOpen.get(bk) : !allDone || containsNext;
-      const d = el("details", { class: `block${allDone ? " block-done" : ""}` }, [
-        el("summary", {}, [
-          el("span", { class: "block-name" }, `${b.icon} ${b.name}`),
-          el("span", { class: "block-count" }, `${b.doneCount}/${b.count} done`),
-        ]),
-        el("div", {}, b.items.map(renderItem)),
-      ]);
-      if (open) d.setAttribute("open", "");
-      d.addEventListener("toggle", () => blockOpen.set(bk, d.open));
-      return d;
-    }),
-  ]);
-  fullBody.appendChild(listCard);
-
-  // Calendar export
-  const remaining = items.filter((i) => !i.done);
-  const calCard = el("div", { class: "card" }, [
-    el("h2", {}, "Calendar"),
-    el("div", { class: "muted" }, `${remaining.length} of ${items.length} items remaining — "rest of today" only exports what's left, so re-exporting after rescheduling won't duplicate things you've already checked off.`),
+    el("div", { class: "muted", style: "margin-top:0.8rem" }, `${remaining.length} of ${items.length} items left. "Rest of today" only exports what's unchecked.`),
     el("div", { class: "actions-row cal-actions" }, [
-      el(
-        "button",
-        {
-          class: "primary",
-          onclick: () => downloadICS(`elevate-${key}.ics`, buildICS(currentDate, remaining)),
+      el("button", { class: "primary", onclick: () => downloadICS(`elevate-${key}.ics`, buildICS(currentDate, remaining)) }, "Add rest of today (.ics)"),
+      el("button", {
+        class: "secondary",
+        onclick: () => {
+          const monday = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+          monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+          const days = [];
+          for (let i = 0; i < 7; i++) {
+            const d = new Date(monday);
+            d.setDate(monday.getDate() + i);
+            days.push({ date: d, items: computeDay(d, {}, new Set()) });
+          }
+          downloadICS(`elevate-week-${dateKey(monday)}.ics`, buildMultiDayICS(days));
         },
-        "Add rest of today (.ics)"
-      ),
-      el(
-        "button",
-        {
-          class: "secondary",
-          onclick: () => {
-            const monday = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-            monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-            const days = [];
-            for (let i = 0; i < 7; i++) {
-              const d = new Date(monday);
-              d.setDate(monday.getDate() + i);
-              days.push({ date: d, items: computeDay(d, {}, new Set()) });
-            }
-            downloadICS(`elevate-week-${dateKey(monday)}.ics`, buildMultiDayICS(days));
-          },
-        },
-        "Add whole week (.ics)"
-      ),
+      }, "Add whole week (.ics)"),
     ]),
   ]);
-  fullBody.appendChild(calCard);
-
-  if (scrollPending && isToday && readFullSchedulePref()) {
-    scrollPending = false;
-    requestAnimationFrame(() => {
-      const target = document.querySelector(".item.next") || document.querySelector(".item:not(.done):not(.past)");
-      if (target) target.scrollIntoView({ block: "center" });
-    });
-  }
+  if (timeDrawerOpen) tools.setAttribute("open", "");
+  tools.addEventListener("toggle", () => { timeDrawerOpen = tools.open; });
+  wrap.appendChild(tools);
 
   return wrap;
 
@@ -418,9 +391,16 @@ function renderToday() {
     }
   }
 
-  function snooze(item) {
-    if (snoozeItem(item)) showToast(`Snoozed ${item.label} for ${SNOOZE_MIN} min`);
-    else showToast("Turn on reminders in About to get snoozed alerts");
+  function markMany(list) {
+    const before = loadDayState(key);
+    let next = before;
+    for (const item of list) next = markDone(next, item.id);
+    saveDayState(key, next);
+    render();
+    showToast(`Marked ${list.length} items done`, {
+      actionLabel: "Undo",
+      onAction: () => { saveDayState(key, before); render(); },
+    });
   }
 
   function shiftDate(deltaDays) {
@@ -430,17 +410,6 @@ function renderToday() {
     render();
   }
 }
-
-// Open the full schedule, expand the block holding `item`, and scroll to it.
-function revealItem(item, fullDetails) {
-  if (fullDetails) fullDetails.open = true;
-  const node = item && document.querySelector(`.item[data-id="${CSS.escape(item.id)}"]`);
-  if (!node) { if (fullDetails) fullDetails.scrollIntoView({ block: "start" }); return; }
-  for (let p = node.parentElement; p; p = p.parentElement) if (p.tagName === "DETAILS") p.open = true;
-  node.scrollIntoView({ block: "center" });
-}
-
-let timeDrawerOpen = false;
 
 // ---- Week tab ----
 function renderWeek() {

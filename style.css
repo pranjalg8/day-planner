@@ -563,31 +563,28 @@ body.ob-open { overflow: hidden; }
 .ob-actions button:not(.link-btn) { min-height: 2.75rem; }
 #plan-program label.changed { color: var(--accent-text); font-weight: 600; }
 #plan-program input[aria-invalid="true"] { border-color: #b3261e; }
-/* === today2 === */
-.gl-card h2 { margin-top: 0; }
-.gl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
-.gl-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem; min-height: 4rem; padding: 0.5rem 0.65rem; text-align: left; font: inherit; color: var(--text); background: var(--accent-soft); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; min-width: 0; }
-.gl-tile.gl-wide { grid-column: 1 / -1; }
-.gl-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
-.gl-value { font-size: 1.3rem; font-weight: 700; color: var(--accent-text); line-height: 1.15; }
-.gl-sub { font-size: 0.8rem; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.gl-tile:focus-visible, .gl-tick:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.gl-quick { margin-top: 0.7rem; }
-.gl-quick summary { cursor: pointer; font-weight: 600; min-height: 2.25rem; display: flex; align-items: center; }
-.gl-hint { margin: 0.3rem 0; }
-.gl-row { display: flex; align-items: center; gap: 0.5rem; margin: 0.4rem 0; }
-.gl-row-label { flex: 1; font-size: 0.9rem; min-width: 0; }
-.gl-row input[type="number"] { width: 6.5rem; flex: none; min-height: 2.25rem; font: inherit; padding: 0.2rem 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); }
-.gl-row label.gl-row-label { flex: 0 0 4rem; }
-.gl-row input[type="number"] { flex: 1; width: auto; }
-.gl-sets { margin-top: 0.6rem; }
-.gl-sets-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
-.gl-ex { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.3rem 0; border-top: 1px solid var(--border); margin-top: 0.3rem; }
-.gl-ex-name { font-size: 0.88rem; min-width: 0; }
-.gl-ticks { display: flex; gap: 0.35rem; flex: none; }
-.gl-tick { width: 2.5rem; height: 2.5rem; border-radius: 50%; border: 1px solid var(--border); background: var(--card); color: var(--text); font: inherit; cursor: pointer; padding: 0; }
-.gl-tick.on { background: var(--accent-strong); color: var(--on-accent); border-color: var(--accent-strong); }
-.gl-card button:disabled, .gl-card input:disabled { opacity: 0.5; cursor: not-allowed; }
-.full-schedule { margin: 0.75rem 0; }
-.full-summary { cursor: pointer; font-weight: 600; min-height: 2.75rem; display: flex; align-items: center; padding: 0 0.9rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
-.full-schedule[open] > .full-summary { margin-bottom: 0.75rem; }
+
+/* === today3 === */
+/* Today as a simple checklist: catch up, coming up, done. */
+.today-head { padding-bottom: 0.7rem; }
+.today-nav { display: flex; align-items: center; gap: 0.4rem; position: relative; }
+.today-title { flex: 1; text-align: center; min-width: 0; }
+.today-title strong { font-size: 1.1rem; }
+.today-sub { margin: 0.4rem 0; font-size: 0.85rem; }
+.icon-btn { min-width: 2.6rem; min-height: 2.6rem; padding: 0.2rem 0.6rem; font-size: 1.15rem; line-height: 1; }
+.date-input { position: absolute; right: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+.section-head h2 { margin: 0 0 0.3rem; }
+.section-catchup { border-left: 4px solid var(--accent, #c4552f); }
+.bulk-btn { width: 100%; min-height: 2.8rem; margin: 0.4rem 0 0.3rem; }
+.bulk-note { font-size: 0.8rem; margin-bottom: 0.4rem; }
+.item-toggle { background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; width: 100%; cursor: pointer; }
+.item-toggle .more-dot { margin-left: 0.4rem; opacity: 0.55; font-size: 0.8em; }
+.item .item-extra { display: none; margin-top: 0.2rem; }
+.item.open .item-extra { display: block; }
+.item.open .more-dot { transform: rotate(180deg); display: inline-block; }
+.done-section > summary { cursor: pointer; font-weight: 600; min-height: 2.2rem; display: flex; align-items: center; }
+.done-section[open] > summary { margin-bottom: 0.4rem; }
+.all-done { text-align: center; font-weight: 600; padding: 1.2rem; }
+.log-link { width: 100%; margin: 0.2rem 0 0.8rem; min-height: 2.8rem; }
+.tools > summary { cursor: pointer; font-weight: 600; min-height: 2.2rem; display: flex; align-items: center; gap: 0.5rem; }
