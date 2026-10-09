@@ -2,6 +2,7 @@ import { DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./data.js";
 import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, planDayNumber } from "./engine.js";
 import { buildICS, buildMultiDayICS, downloadICS } from "./ics.js";
 import { backupCard } from "./backup.js";
+import { backupNudge } from "./backupnudge.js";
 import { remindersSupported, remindersEnabled, setRemindersEnabled, scheduleReminders, snoozeItem } from "./reminders.js";
 import { findMissed, missedHint } from "./missed.js";
 import { markDone, unmarkDone, parseDeepLink, parseDateKey, SNOOZE_MIN } from "./actions.js";
@@ -135,6 +136,7 @@ function renderToday() {
   const nowMin = nowMinutes();
 
   const wrap = document.createDocumentFragment();
+  { const n = backupNudge(render); if (n) wrap.appendChild(n); }
 
   const items = computeDay(currentDate, overrides, done);
   const doneCount = items.filter((i) => i.done).length;
