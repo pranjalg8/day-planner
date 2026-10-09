@@ -8,7 +8,7 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 function progress(frac, label) {
   const pct = Math.min(100, Math.round(frac * 100));
   return h("div", { class: "trk-progress" }, [
-    h("div", { class: "trk-bar", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(pct) },
+    h("div", { class: "trk-bar", role: "progressbar", "aria-label": label, "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(pct) },
       h("div", { class: `trk-fill${frac >= 1 ? " full" : ""}`, style: `width:${pct}%` })),
     h("div", { class: "muted trk-small" }, label),
   ]);

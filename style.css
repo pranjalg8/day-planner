@@ -542,3 +542,14 @@ body.ob-open { overflow: hidden; }
 .bk-warn { color: var(--accent-text, var(--text)); font-weight: 700; }
 .bk-actions { flex-wrap: wrap; justify-content: stretch; }
 .bk-actions button { flex: 1 1 100%; min-height: 2.75rem; }
+
+/* === a11y === */
+/* Text on tinted/white backgrounds must reach 4.5:1: use the darker accent for small text. */
+.streak, .day-toggle.on, .day-toggle.on span, #ob-skip { color: var(--accent-text); }
+/* Large text / narrow screens: let rows and tables shrink or scroll instead of overflowing the page. */
+.item-body { min-width: 0; }
+.item-label, .item-notes { overflow-wrap: anywhere; }
+.table-scroll { max-width: 100%; overflow-x: auto; }
+.today-nav { flex-wrap: wrap; row-gap: 0.4rem; }
+.today-title { flex: 1 1 9rem; min-width: 9rem; }
+.today-title .muted { white-space: nowrap; }

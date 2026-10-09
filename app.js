@@ -146,6 +146,8 @@ function renderToday() {
     type: "date",
     id: "date-picker",
     class: "date-input",
+    tabindex: "-1",
+    "aria-hidden": "true",
     value: key,
     "aria-label": "Jump to date",
     onchange: (e) => {
@@ -183,7 +185,7 @@ function renderToday() {
       el("strong", {}, `${doneCount} of ${items.length} done`),
       el("span", { class: "streak", title: "Consecutive days with at least 80% completion" }, `🔥 ${streak}`),
     ]),
-    el("div", { class: "progress-bar", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(pct) }, [
+    el("div", { class: "progress-bar", role: "progressbar", "aria-label": "Plan items done", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(pct) }, [
       el("div", { class: "progress-fill", style: `width:${pct}%` }),
     ]),
   ]);

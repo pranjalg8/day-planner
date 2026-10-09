@@ -32,7 +32,7 @@ export function reportCard() {
   let start = weekStartOf(new Date());
   const card = h("div", { class: "card report-card", id: "report-card" });
   const weekInput = h("input", { type: "date", id: "report-week", value: keyOf(start), "aria-label": "Any day in the week to report" });
-  const preview = h("pre", { class: "report-preview", id: "report-preview", "aria-live": "polite" });
+  const preview = h("pre", { class: "report-preview", id: "report-preview", tabindex: "0", role: "region", "aria-label": "Report preview" });
   const status = h("p", { class: "muted report-status", role: "status" });
   const text = () => buildReport(gather(start), include);
   const refresh = () => { preview.textContent = text(); };
