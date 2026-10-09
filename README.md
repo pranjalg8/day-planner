@@ -8,6 +8,8 @@ No build step — plain HTML/CSS/JS, deployable as-is on GitHub Pages.
 
 ## What it does
 
+Navigation: a bottom tab bar (Today, Log, Insights, Plan) plus a **More** sheet (Week, Workout, Meds, About). A one-time, skippable setup flow asks for wake/meal times, workout days, weight/goal and reminders (flag `elevate-planner-onboarded`, deliberately outside the backup prefix; re-run it from About). Program dates (plan start, medicine courses, review date) are editable on the Plan tab and stored in the plan overrides.
+
 - **Today** — shows today's plan computed from `data.js`. Edit any actual
   time (wake, breakfast, lunch, dinner, bedtime, etc.) and everything
   dependent on it (medicine buffer windows, post-meal walks) recomputes

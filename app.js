@@ -1,4 +1,4 @@
-import { PROGRAM, DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./data.js";
+import { DEFAULT_TIMES, MEDICINES, ACTIONS, MENUS, WORKOUT } from "./data.js";
 import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, planDayNumber } from "./engine.js";
 import { buildICS, buildMultiDayICS, downloadICS } from "./ics.js";
 import { backupCard } from "./backup.js";
@@ -9,11 +9,17 @@ import { showToast } from "./toast.js";
 import { renderLog } from "./log.js";
 import { renderWeekTab } from "./week.js";
 import { renderPlanTab, mealNoteWidget } from "./plan.js";
-import { effectiveTimes } from "./planstore.js";
+import { effectiveTimes, effectiveProgram } from "./planstore.js";
+import { initNav, syncNav, isKnownTab } from "./nav.js";
+import { startOnboardingIfNeeded, setupCard } from "./onboarding.js";
+
+// Program dates are user-editable (Plan tab): `PROGRAM.x` reads the effective value live.
+const PROGRAM = new Proxy({}, { get: (_, k) => effectiveProgram()[k] });
 import { renderMedsTab } from "./meds.js";
 import { renderInsights } from "./insights.js";
 import { groupItems } from "./grouping.js";
 import { reportCard } from "./report.js";
+import { buildGlance, readFullSchedulePref, writeFullSchedulePref } from "./glance.js";
 import { loadHistory, saveHistory, recordDay, computeStreak } from "./progress.js";
 
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -45,14 +51,11 @@ let activeTab = "today";
 function setTab(tab) {
   activeTab = tab;
   window.scrollTo(0, 0);
-  document.querySelectorAll(".tab").forEach((el) => el.classList.toggle("active", el.dataset.tab === tab));
+  syncNav(tab);
   render();
 }
 
-document.getElementById("tabs").addEventListener("click", (e) => {
-  const btn = e.target.closest("button[data-tab]");
-  if (btn) setTab(btn.dataset.tab);
-});
+initNav(setTab);
 
 function render() {
   const app = document.getElementById("app");
@@ -208,8 +211,23 @@ function renderToday() {
   ]);
   wrap.appendChild(dateCard);
 
+  // Today at a glance + collapsible full schedule (everything below goes inside `fullBody`)
+  wrap.appendChild(buildGlance({
+    key, todayKey: dateKey(new Date()), isToday, items, nowMin,
+    goTab: (t) => setTab(t),
+    showNext: (item) => revealItem(item, fullDetails),
+  }));
+  const fullDetails = el("details", { class: "full-schedule", id: "full-schedule" }, [
+    el("summary", { class: "full-summary" }, `Full schedule · ${doneCount}/${items.length} done`),
+  ]);
+  if (readFullSchedulePref()) fullDetails.setAttribute("open", "");
+  fullDetails.addEventListener("toggle", () => writeFullSchedulePref(fullDetails.open));
+  const fullBody = el("div", { class: "full-body" });
+  fullDetails.appendChild(fullBody);
+  wrap.appendChild(fullDetails);
+
   // Progress
-  wrap.appendChild(
+  fullBody.appendChild(
     el("div", { class: "card progress-card" }, [
       el("div", { class: "progress-head" }, [
         el("strong", {}, `${doneCount} of ${items.length} done`),
@@ -286,7 +304,7 @@ function renderToday() {
   ]);
   if (timeDrawerOpen) timeCard.setAttribute("open", "");
   timeCard.addEventListener("toggle", () => { timeDrawerOpen = timeCard.open; });
-  wrap.appendChild(timeCard);
+  fullBody.appendChild(timeCard);
 
   // Grouped schedule
   const renderItem = (item) => {
@@ -340,7 +358,7 @@ function renderToday() {
       return d;
     }),
   ]);
-  wrap.appendChild(listCard);
+  fullBody.appendChild(listCard);
 
   // Calendar export
   const remaining = items.filter((i) => !i.done);
@@ -376,9 +394,9 @@ function renderToday() {
       ),
     ]),
   ]);
-  wrap.appendChild(calCard);
+  fullBody.appendChild(calCard);
 
-  if (scrollPending && isToday) {
+  if (scrollPending && isToday && readFullSchedulePref()) {
     scrollPending = false;
     requestAnimationFrame(() => {
       const target = document.querySelector(".item.next") || document.querySelector(".item:not(.done):not(.past)");
@@ -411,6 +429,15 @@ function renderToday() {
     currentDate = d;
     render();
   }
+}
+
+// Open the full schedule, expand the block holding `item`, and scroll to it.
+function revealItem(item, fullDetails) {
+  if (fullDetails) fullDetails.open = true;
+  const node = item && document.querySelector(`.item[data-id="${CSS.escape(item.id)}"]`);
+  if (!node) { if (fullDetails) fullDetails.scrollIntoView({ block: "start" }); return; }
+  for (let p = node.parentElement; p; p = p.parentElement) if (p.tagName === "DETAILS") p.open = true;
+  node.scrollIntoView({ block: "center" });
 }
 
 let timeDrawerOpen = false;
@@ -469,6 +496,7 @@ function renderAbout() {
     ]),
   ]));
   wrap.appendChild(remindersCard());
+  wrap.appendChild(setupCard(render));
   wrap.appendChild(reportCard());
   wrap.appendChild(backupCard(render));
   return wrap;
@@ -500,10 +528,11 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+startOnboardingIfNeeded(render);
 render();
 {
   const link = parseDeepLink(location.search);
-  if (link.tab && document.querySelector(`.tab[data-tab="${link.tab}"]`)) setTab(link.tab);
+  if (link.tab && isKnownTab(link.tab)) setTab(link.tab);
   if (link.done) applyQuickAction("done", link.done, link.date);
   else if (link.snooze) applyQuickAction("snooze", link.snooze, link.date);
   if (link.tab || link.done || link.snooze) {

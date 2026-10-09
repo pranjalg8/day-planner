@@ -1,8 +1,9 @@
 // Pure aggregation for the Insights tab. No DOM. All functions take plain
 // data (see readAll) so they can be tested without a browser.
 
-import { PROGRAM, ACTIONS, WORKOUT } from "./data.js";
+import { ACTIONS, WORKOUT } from "./data.js";
 import { computeDay } from "./engine.js";
+import { effectiveProgram } from "./planstore.js";
 import { STREAK_THRESHOLD } from "./progress.js";
 
 export const GOAL_KEY = "elevate-planner:goal";
@@ -79,7 +80,7 @@ const pct = (done, total) => (total > 0 ? done / total : null);
  */
 export function dayStats(date, data, today = new Date()) {
   const key = dateKey(date);
-  if (key < PROGRAM.planStart || key > dateKey(today)) return null;
+  if (key < effectiveProgram().planStart || key > dateKey(today)) return null;
   const st = data.days[key] || { overrides: {}, done: [] };
   const doneSet = new Set(st.done);
   const items = computeDay(date, st.overrides);
@@ -239,7 +240,7 @@ export function streaks(stats, threshold = STREAK_THRESHOLD, today = new Date())
 
 /** Everything the tab shows. */
 export function buildInsights(data, today = new Date()) {
-  const all = rangeStats(parseKey(PROGRAM.planStart), today, data, today);
+  const all = rangeStats(parseKey(effectiveProgram().planStart), today, data, today);
   const totals = logTotals(all, data.log);
   return {
     hasData: all.length > 0 && (all.some((s) => s.done > 0) || Object.keys(data.log).length > 0),

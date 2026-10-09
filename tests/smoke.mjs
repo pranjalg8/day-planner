@@ -49,17 +49,45 @@ try {
   page.on("requestfailed", (r) => problems.push(`request failed: ${r.url()} ${r.failure()?.errorText}`));
   page.on("response", (r) => { if (r.status() >= 400) problems.push(`HTTP ${r.status()}: ${r.url()}`); });
 
+  // First run: the onboarding dialog shows once and Skip dismisses it for good.
   await page.goto(base, { waitUntil: "load" });
-  const tabs = await page.$$eval("#tabs [data-tab]", (bs) => bs.map((b) => b.dataset.tab));
-  if (!tabs.length) problems.push("no tabs found");
-  for (const t of tabs) {
-    await page.click(`#tabs [data-tab="${t}"]`);
+  if (!(await page.$("#onboarding[role=dialog], #onboarding .ob-dialog"))) problems.push("onboarding did not show on first run");
+  await page.click("#ob-skip");
+  if (await page.$("#onboarding")) problems.push("onboarding did not close on Skip");
+  await page.reload({ waitUntil: "load" });
+  if (await page.$("#onboarding")) problems.push("onboarding showed again after being skipped");
+
+  const primary = await page.$$eval("#tabs [data-tab]", (bs) => bs.map((b) => b.dataset.tab));
+  const secondary = await page.$$eval("#more-sheet [data-tab]", (bs) => bs.map((b) => b.dataset.tab));
+  if (primary.length !== 4) problems.push(`expected 4 primary tabs, got ${primary}`);
+  if (secondary.length !== 4) problems.push(`expected 4 secondary tabs, got ${secondary}`);
+  const check = async (t) => {
     const len = await page.$eval("#app", (a) => a.textContent.trim().length);
     if (len < 10) problems.push(`tab ${t} rendered empty`);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
     if (overflow) problems.push(`tab ${t} scrolls horizontally at 420px`);
     console.log(`tab ${t}: ok`);
+  };
+  for (const t of primary) {
+    await page.click(`#tabs [data-tab="${t}"]`);
+    await check(t);
   }
+  for (const t of secondary) {
+    await page.click("#more-btn");
+    if (!(await page.isVisible("#more-sheet"))) problems.push("More sheet did not open");
+    await page.click(`#more-sheet [data-tab="${t}"]`);
+    if (await page.isVisible("#more-sheet")) problems.push("More sheet stayed open after selection");
+    if (!(await page.$eval("#more-btn", (b) => b.classList.contains("active")))) problems.push(`More not active on ${t}`);
+    await check(t);
+  }
+  // Escape closes the sheet and returns focus to More.
+  await page.click("#more-btn");
+  await page.keyboard.press("Escape");
+  if (await page.isVisible("#more-sheet")) problems.push("Escape did not close More");
+  // The tab bar must not hide page content: the footer can be scrolled above it.
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const clear = await page.evaluate(() => document.querySelector(".footnote").getBoundingClientRect().bottom <= document.getElementById("tabs").getBoundingClientRect().top + 1);
+  if (!clear) problems.push("tab bar overlaps the end of the page");
 } catch (e) {
   if (e !== null) problems.push(`exception: ${e?.stack || e}`);
 } finally {
