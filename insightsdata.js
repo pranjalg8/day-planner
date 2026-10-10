@@ -122,7 +122,7 @@ function logTotals(stats, log) {
 }
 
 /** Adherence per group + log totals for a list of day stats. */
-function summarize(stats, log = {}) {
+export function summarize(stats, log = {}) {
   const groups = {};
   for (const g of GROUPS) {
     let d = 0, t = 0;

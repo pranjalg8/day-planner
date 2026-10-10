@@ -3,6 +3,7 @@ import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, pl
 import { buildICS, buildMultiDayICS, downloadICS } from "./ics.js";
 import { backupCard } from "./backup.js";
 import { backupNudge } from "./backupnudge.js";
+import { weeklyReviewNudge } from "./weeklyreview.js";
 import { remindersSupported, remindersEnabled, setRemindersEnabled, scheduleReminders, snoozeItem } from "./reminders.js";
 import { findMissed, missedHint } from "./missed.js";
 import { markDone, unmarkDone, parseDeepLink, parseDateKey, SNOOZE_MIN } from "./actions.js";
@@ -121,6 +122,7 @@ function renderToday() {
 
   const wrap = document.createDocumentFragment();
   { const n = backupNudge(render); if (n) wrap.appendChild(n); }
+  { const n = weeklyReviewNudge(); if (n) wrap.appendChild(n); }
 
   const items = computeDay(currentDate, overrides, done);
   const doneCount = items.filter((i) => i.done).length;
