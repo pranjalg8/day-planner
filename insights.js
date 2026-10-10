@@ -1,6 +1,7 @@
 // Insights tab: DOM only. All numbers come from insightsdata.js.
 import { GROUPS, readAll, setGoal, buildInsights, linearTrend, trendText, parseKey } from "./insightsdata.js";
 import { el as h } from "./dom.js";
+import { weeklyReviewCard } from "./weeklyreview.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const DAY_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
@@ -144,6 +145,7 @@ export function renderInsights(rerender = () => {}) {
       h("p", {}, "Nothing to show yet. Tick off items on Today and log water, steps or weight on the Log tab, and your weekly progress will show up here."),
     ]));
   } else {
+    wrap.appendChild(weeklyReviewCard(rerender));
     wrap.appendChild(weekCard(info.week));
     wrap.appendChild(heatCard(info.heat));
   }
