@@ -4,6 +4,7 @@ import { buildICS, buildMultiDayICS, downloadICS } from "./ics.js";
 import { backupCard } from "./backup.js";
 import { backupNudge } from "./backupnudge.js";
 import { weeklyReviewNudge } from "./weeklyreview.js";
+import { refillNudge, medItemExtras } from "./medextrasui.js";
 import { remindersSupported, remindersEnabled, setRemindersEnabled, scheduleReminders, snoozeItem } from "./reminders.js";
 import { findMissed, missedHint } from "./missed.js";
 import { markDone, unmarkDone, parseDeepLink, parseDateKey, SNOOZE_MIN } from "./actions.js";
@@ -123,6 +124,7 @@ function renderToday() {
   const wrap = document.createDocumentFragment();
   { const n = backupNudge(render); if (n) wrap.appendChild(n); }
   { const n = weeklyReviewNudge(); if (n) wrap.appendChild(n); }
+  { const n = refillNudge(); if (n) wrap.appendChild(n); }
 
   const items = computeDay(currentDate, overrides, done);
   const doneCount = items.filter((i) => i.done).length;
@@ -211,7 +213,7 @@ function renderToday() {
   const renderItem = (item) => {
     const isMissed = missedIds.has(item.id);
     const isNext = nextItem && item.id === nextItem.id;
-    const hasExtra = isMissed || Boolean(item.notes) || (item.links && item.links.length);
+    const hasExtra = isMissed || item.category === "medicine" || Boolean(item.notes) || (item.links && item.links.length);
     const row = el("div", { class: `item cat-${item.category}${item.done ? " done" : ""}${isMissed ? " missed" : ""}${isNext ? " next" : ""}`, "data-id": item.id }, [
       el("label", { class: "check-hit" }, [
         el("input", {
@@ -242,6 +244,7 @@ function renderToday() {
           isMissed ? el("div", { class: "missed-hint" }, missedHint(item.id)) : null,
           item.notes ? el("div", { class: "item-notes", style: "white-space:pre-line" }, item.notes) : null,
           mealNoteWidget(key, item.id),
+          medItemExtras(item),
           item.links && item.links.length
             ? el("div", { class: "item-links" }, item.links.map((l) => el("a", { class: "pill-link", href: l.url, target: "_blank", rel: "noopener" }, `▶ ${l.name}`)))
             : null,
