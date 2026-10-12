@@ -3,6 +3,7 @@ import { effectiveProgram } from "./planstore.js";
 import { computeDay, dailyMedActive, dailyMedDayNumber, weeklyMedActiveToday } from "./engine.js";
 import { dateKey, getTaken, setTaken } from "./logstore.js";
 import { el as h } from "./dom.js";
+import { supplyCard, notesCard } from "./medextrasui.js";
 
 function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
 
@@ -40,6 +41,8 @@ export function renderMedsTab(rerender) {
     weeklyMedActiveToday(now) ? h("div", { class: "chip" }, "Uprise-D3 day") : null,
   ]));
 
+  wrap.appendChild(supplyCard());
+
   // Today's doses
   const takenCount = doses.filter((d) => taken.has(d.id)).length;
   wrap.appendChild(h("div", { class: "card" }, [
@@ -53,6 +56,8 @@ export function renderMedsTab(rerender) {
         h("div", { class: "item-body" }, [h("div", { class: "item-label" }, d.label), d.notes ? h("div", { class: "item-notes" }, d.notes) : null]),
       ])),
   ]));
+
+  wrap.appendChild(notesCard(rerender));
 
   // Reference
   wrap.appendChild(h("div", { class: "card" }, [

@@ -565,3 +565,16 @@ body.ob-open { overflow: hidden; }
 .review-note { margin-top: 0.6rem; font-size: 0.8rem; }
 .review-nudge { border-left: 4px solid var(--accent-strong, #b8451f); }
 .review-nudge-msg { margin: 0 0 0.5rem; }
+
+/* === medicine extras === */
+.refill-nudge { border-left: 4px solid var(--accent-strong, #b8451f); }
+.refill-msg { margin: 0 0 0.3rem; font-weight: 600; }
+.refill-advice { margin: 0.2rem 0 0.5rem; }
+.supply-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.4rem 0; border-bottom: 1px solid var(--border); }
+.supply-row .chip { white-space: nowrap; }
+.med-note-row { margin: 0.7rem 0; }
+.med-note-label { display: block; font-weight: 600; margin-bottom: 0.2rem; }
+.med-note-input { width: 100%; box-sizing: border-box; font: inherit; padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--card, #fff); color: inherit; resize: vertical; }
+.med-extra { margin-top: 0.3rem; }
+.med-note { margin: 0.2rem 0; }
+.med-doctor { font-size: 0.8rem; }
