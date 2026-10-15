@@ -54,7 +54,7 @@ function plannerKeys() {
 export function localCounts() {
   try {
     const c = engine && engine.countLocalDocs && engine.countLocalDocs();
-    if (c) return c;
+    if (c) return { days: c.days, hasOtherData: !!(c.hasOtherData ?? c.hasOther) };
   } catch { /* fall through */ }
   const keys = plannerKeys().filter((k) => k && k.startsWith("elevate-planner:"));
   const days = keys.filter((k) => /^elevate-planner:\d{4}-\d{2}-\d{2}$/.test(k)).length;

@@ -5,7 +5,7 @@
 const CACHE = "day-planner-v12";
 const SHELL = [
   "./", "index.html", "style.css", "manifest.webmanifest",
-  "a11y.js", "accountdata.js", "accountui.js", "actions.js", "app.js", "backup.js", "backupnudge.js", "boot.js", "catchup.js", "data.js", "dom.js", "engine.js", "grocery.js", "ics.js", "insights.js", "insightsdata.js", "log.js", "logstore.js", "medextras.js", "medextrasui.js", "meds.js", "missed.js", "nav.js", "onboarding.js", "onboardingdata.js", "plan.js", "planstore.js", "programcard.js", "progress.js", "pwa.js", "reminders.js", "report.js", "reportdata.js", "syncadapter-http.js", "syncadapter-mock.js", "syncclient.js", "syncmerge.js", "syncui.js", "theme.js", "toast.js", "week.js", "weeklyreview.js", "weeklyreviewdata.js",
+  "a11y.js", "accountdata.js", "accountui.js", "actions.js", "app.js", "backup.js", "backupnudge.js", "boot.js", "catchup.js", "data.js", "dom.js", "engine.js", "grocery.js", "ics.js", "insights.js", "insightsdata.js", "log.js", "logstore.js", "medextras.js", "medextrasui.js", "meds.js", "missed.js", "nav.js", "onboarding.js", "onboardingdata.js", "plan.js", "planstore.js", "programcard.js", "progress.js", "pwa.js", "reminders.js", "report.js", "reportdata.js", "syncadapter-http.js", "syncadapter-mock.js", "syncclient.js", "syncconfig.js", "syncengine.js", "syncmerge.js", "syncstore.js", "syncui.js", "theme.js", "toast.js", "week.js", "weeklyreview.js", "weeklyreviewdata.js",
   "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/icon.svg",
 ];
 
