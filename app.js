@@ -1,3 +1,4 @@
+import { startSyncUi, syncCard } from "./syncui.js"; // first: installs write tracking before anything renders
 import { ACTIONS, WORKOUT } from "./data.js";
 import { computeDay, dailyMedDayNumber, dailyMedActive, weeklyMedActiveToday, planDayNumber } from "./engine.js";
 import { buildICS, buildMultiDayICS, downloadICS } from "./ics.js";
@@ -463,7 +464,7 @@ function renderAbout() {
     el("h2", {}, "About this planner"),
     el("p", {}, "A static, on-device day planner for a weight-management program: meal windows, medicine timing (including buffer rules), post-meal walks, water and step targets."),
     el("p", {}, "Nothing here is medical advice — it's a scheduling tool built from the plan you already have. Confirm anything medication-related with your doctor/coach."),
-    el("p", {}, "Data (your edited times and checked-off items) is stored only in this browser's local storage — it is not synced anywhere and is not committed to the repo."),
+    el("p", {}, "Data (your edited times and checked-off items) is stored only in this browser's local storage — it is not committed to the repo. If cloud sync is set up and you sign in below, a copy is also kept in your account so other devices can pull it."),
     el("h2", {}, "Using it day to day"),
     el("ul", {}, [
       el("li", {}, "Open it each morning; it defaults to today's date and the week's menu rotation."),
@@ -472,6 +473,7 @@ function renderAbout() {
       el("li", {}, "On iPhone, tap the downloaded .ics to open Calendar's add-event sheet. Add to Home Screen from Safari's share sheet for quick access."),
     ]),
   ]));
+  wrap.appendChild(syncCard());
   wrap.appendChild(remindersCard());
   wrap.appendChild(setupCard(render));
   wrap.appendChild(reportCard());
@@ -505,6 +507,7 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+startSyncUi(render);
 startOnboardingIfNeeded(render);
 render();
 {

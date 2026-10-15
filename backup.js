@@ -218,6 +218,44 @@ function confirmImport({ exportedAt, incoming, current }) {
   });
 }
 
+/**
+ * Reads a chosen backup file, shows the confirm sheet and, on "replace", imports it.
+ * Resolves a status message. Announces "planner:data-restored" so first-run setup is marked done.
+ */
+export async function importBackupFile(f, { onRestored } = {}) {
+  try {
+    const { data, exportedAt } = parseBackupText(await f.text());
+    const choice = await confirmImport({ exportedAt, incoming: summarizeData(data), current: summarizeData(collectData()) });
+    if (choice !== "replace") return "Import cancelled. Nothing changed.";
+    if (!saveSnapshot()) return "Import stopped: couldn't save a safety copy of your current data (storage full?). Nothing changed.";
+    restoreData(data);
+    try { document.dispatchEvent(new CustomEvent("planner:data-restored", { detail: { source: "backup" } })); } catch { /* ignore */ }
+    onRestored?.();
+    return `Imported ${describeSummary(summarizeData(data))}. You can undo this below.`;
+  } catch (err) {
+    return `Import failed: ${err.message}`;
+  }
+}
+
+/** Opens the file picker, then runs the import flow. Resolves the status message or null if nothing was chosen. */
+export function chooseAndImportBackup({ onRestored } = {}) {
+  return new Promise((resolve) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json,.json";
+    input.hidden = true;
+    input.setAttribute("aria-label", "Choose backup file to import");
+    document.body.appendChild(input);
+    input.addEventListener("change", async () => {
+      const f = input.files[0];
+      input.remove();
+      resolve(f ? await importBackupFile(f, { onRestored }) : null);
+    });
+    input.addEventListener("cancel", () => { input.remove(); resolve(null); });
+    input.click();
+  });
+}
+
 /** Builds the Backup card. `onRestored` is called after a successful import or undo (re-render). */
 export function backupCard(onRestored) {
   const status = document.createElement("div");
@@ -257,20 +295,10 @@ export function backupCard(onRestored) {
     const f = file.files[0];
     file.value = "";
     if (!f) return;
-    try {
-      const { data, exportedAt } = parseBackupText(await f.text());
-      const choice = await confirmImport({ exportedAt, incoming: summarizeData(data), current: summarizeData(collectData()) });
-      if (choice !== "replace") { status.textContent = "Import cancelled. Nothing changed."; return; }
-      if (!saveSnapshot()) { status.textContent = "Import stopped: couldn't save a safety copy of your current data (storage full?). Nothing changed."; return; }
-      restoreData(data);
-      const msg = `Imported ${describeSummary(summarizeData(data))}. You can undo this below.`;
-      status.textContent = msg;
-      refresh();
-      onRestored?.();
-      document.getElementById("backup-status")?.replaceChildren(msg);
-    } catch (err) {
-      status.textContent = `Import failed: ${err.message}`;
-    }
+    const msg = await importBackupFile(f, { onRestored });
+    status.textContent = msg;
+    refresh();
+    if (msg.startsWith("Imported")) document.getElementById("backup-status")?.replaceChildren(msg);
   });
 
   function mk(text, fn) {
