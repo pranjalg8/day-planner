@@ -578,3 +578,32 @@ body.ob-open { overflow: hidden; }
 .med-extra { margin-top: 0.3rem; }
 .med-note { margin: 0.2rem 0; }
 .med-doctor { font-size: 0.8rem; }
+
+/* === sync ui === */
+.topbar .sync-chip { display: inline-block; margin: -0.4rem 0 0.6rem; min-height: 2rem; padding: 0.15rem 0.7rem; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--text); font: inherit; font-size: 0.8rem; cursor: pointer; }
+#sync-chip[data-kind="error"] { border-color: var(--accent-strong); color: var(--accent-text); font-weight: 600; }
+.sync-line { margin: 0 0 0.3rem; font-weight: 600; overflow-wrap: anywhere; }
+.sync-detail { margin: 0 0 0.5rem; font-size: 0.88rem; }
+.sync-actions { margin-top: 0.5rem; flex-wrap: wrap; }
+.sync-card button, .sync-dialog button { min-height: 2.75rem; }
+.sync-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.sync-card .danger-text, .sync-dialog .danger { color: #b3261e; border-color: #b3261e; }
+.sync-dialog button.primary.danger { background: #b3261e; color: #fff; border-color: #b3261e; }
+:root[data-theme="dark"] .sync-card .danger-text { color: #ff9a92; border-color: #ff9a92; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sync-card .danger-text { color: #ff9a92; border-color: #ff9a92; } }
+.sync-dialog [aria-disabled="true"] { opacity: 0.6; cursor: progress; }
+.acct-field { display: flex; flex-direction: column; gap: 0.2rem; margin: 0.7rem 0; }
+.acct-field label { font-size: 0.9rem; font-weight: 600; }
+.acct-field input { width: 100%; box-sizing: border-box; min-height: 2.75rem; font: inherit; padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+.acct-field input[aria-invalid="true"] { border-color: #b3261e; }
+.acct-hint { font-size: 0.82rem; }
+.acct-err:empty, .acct-form-err:empty { display: none; }
+.acct-notice { padding: 0.55rem 0.7rem; border-radius: 8px; background: var(--accent-soft); color: var(--text); border: 1px solid var(--border); font-size: 0.9rem; }
+.acct-switch { display: block; margin-top: 0.6rem; font-size: 0.9rem; }
+.acct-order { margin: 0.3rem 0 0; }
+.acct-actions { flex-wrap: wrap; }
+.ob-returning { margin-top: 1rem; padding-top: 0.7rem; border-top: 1px solid var(--border); }
+.ob-returning-title { margin: 0 0 0.4rem; font-weight: 600; font-size: 0.9rem; }
+.ob-returning .actions-row { flex-wrap: wrap; }
+.ob-returning button { min-height: 2.75rem; }
+.sync-dialog .link-btn { color: var(--accent-text); font-size: 0.9rem; }

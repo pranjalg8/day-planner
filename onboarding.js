@@ -8,6 +8,9 @@ import { setGoal, readAll } from "./insightsdata.js";
 import { remindersSupported, remindersEnabled, setRemindersEnabled } from "./reminders.js";
 import { ONBOARDED_KEY, STEPS, TIME_FIELDS, TIME_LABELS, validateStep, validateAll, applyToPlan, sideEffects } from "./onboardingdata.js";
 import { el as h } from "./dom.js";
+import { chooseAndImportBackup } from "./backup.js";
+import { openAccountSheet } from "./accountui.js";
+import { isSyncConfigured } from "./syncclient.js";
 
 const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -46,6 +49,13 @@ function currentAnswers() {
 }
 
 let openDialog = null;
+let closeActive = null;
+
+// Data arrived from a backup import or a cloud sign-in: this device is set up already.
+document.addEventListener("planner:data-restored", () => {
+  markOnboarded();
+  closeActive?.();
+});
 
 function openOnboarding(rerender) {
   if (openDialog) return;
@@ -65,6 +75,7 @@ function openOnboarding(rerender) {
     markOnboarded();
     overlay.remove();
     openDialog = null;
+    closeActive = null;
     document.body.classList.remove("ob-open");
     document.removeEventListener("keydown", onKey, true);
     try { previouslyFocused?.focus?.(); } catch { /* ignore */ }
@@ -72,6 +83,7 @@ function openOnboarding(rerender) {
   }
 
   function onKey(e) {
+    if (document.querySelector(".ob-overlay:not(#onboarding)")) return; // another dialog (account sheet, import) is on top
     if (e.key === "Escape") { e.preventDefault(); close(); return; }
     if (e.key !== "Tab") return;
     const f = [...dialog.querySelectorAll("button, input, select")].filter((n) => !n.disabled);
@@ -80,6 +92,7 @@ function openOnboarding(rerender) {
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   }
+  closeActive = close;
   document.addEventListener("keydown", onKey, true);
 
   const err = (field) => (errors[field] ? h("div", { class: "ob-err", role: "alert" }, errors[field]) : null);
@@ -154,12 +167,28 @@ function openOnboarding(rerender) {
     ];
   }
 
+  function returningUserBlock() {
+    const status = h("p", { class: "muted ob-small", role: "status", id: "ob-restore-status" });
+    return h("div", { class: "ob-returning", role: "group", "aria-labelledby": "ob-returning-title" }, [
+      h("p", { class: "ob-returning-title", id: "ob-returning-title" }, "I already use this"),
+      h("div", { class: "actions-row" }, [
+        isSyncConfigured() ? h("button", { type: "button", class: "secondary", id: "ob-signin", onclick: () => openAccountSheet({ mode: "signin" }) }, "Sign in") : null,
+        h("button", {
+          type: "button", class: "secondary", id: "ob-restore",
+          onclick: async () => { const msg = await chooseAndImportBackup({ onRestored: rerender }); if (msg && !msg.startsWith("Imported")) status.textContent = msg; },
+        }, "Restore a backup"),
+      ]),
+      status,
+    ]);
+  }
+
   function paint() {
     dialog.textContent = "";
     const last = step === STEPS.length - 1;
     dialog.append(
       h("div", { class: "ob-progress", role: "img", "aria-label": `Step ${step + 1} of ${STEPS.length}` }, STEPS.map((_, i) => h("span", { class: `ob-dot${i === step ? " on" : i < step ? " past" : ""}` }))),
       ...body().filter(Boolean),
+      ...(step === 0 ? [returningUserBlock()] : []),
       h("div", { class: "ob-actions" }, [
         h("button", { type: "button", class: "link-btn", id: "ob-skip", onclick: () => close() }, "Skip setup"),
         step > 0 ? h("button", { type: "button", class: "secondary", id: "ob-back", onclick: () => { errors = {}; step--; paint(); } }, "Back") : null,
