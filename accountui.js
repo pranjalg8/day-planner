@@ -121,7 +121,7 @@ export function openAccountSheet({ mode = "signin", onSuccess = null } = {}) {
         submitBtn,
       ]),
     ]);
-    dialog.append(
+    dialog.append(...[
       h("h2", { id: "acct-title" }, create ? "Create account" : "Sign in"),
       h("p", { class: "muted" }, create ? "Choose a name and a PIN to sync your planner across devices." : "Enter your name and PIN to sync this device."),
       notice ? h("p", { class: "acct-notice", id: "acct-link-notice" }, notice) : null,
@@ -129,7 +129,7 @@ export function openAccountSheet({ mode = "signin", onSuccess = null } = {}) {
       h("button", { type: "button", class: "link-btn acct-switch", id: "acct-switch", onclick: () => { name = nameIn.value; mode = create ? "signin" : "signup"; paint(); nameIn.focus(); } },
         create ? "Already have an account? Sign in" : "New here? Create account"),
       h("p", { class: "muted acct-hint acct-order" }, "Using more than one device? Create the account on the device with the most data first, then sign in on the others."),
-    );
+    ].filter(Boolean));
   }
 
   async function attempt(n, pin, options) {

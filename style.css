@@ -580,9 +580,8 @@ body.ob-open { overflow: hidden; }
 .med-doctor { font-size: 0.8rem; }
 
 /* === sync ui === */
-.topbar.has-sync-chip { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
-.sync-chip { margin: 0 0 0.6rem; min-height: 2rem; padding: 0.15rem 0.7rem; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--text); font: inherit; font-size: 0.8rem; cursor: pointer; }
-.sync-chip[data-kind="error"] { border-color: var(--accent-strong); color: var(--accent-text); font-weight: 600; }
+.topbar .sync-chip { display: inline-block; margin: -0.4rem 0 0.6rem; min-height: 2rem; padding: 0.15rem 0.7rem; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--text); font: inherit; font-size: 0.8rem; cursor: pointer; }
+#sync-chip[data-kind="error"] { border-color: var(--accent-strong); color: var(--accent-text); font-weight: 600; }
 .sync-line { margin: 0 0 0.3rem; font-weight: 600; overflow-wrap: anywhere; }
 .sync-detail { margin: 0 0 0.5rem; font-size: 0.88rem; }
 .sync-actions { margin-top: 0.5rem; flex-wrap: wrap; }
@@ -607,3 +606,4 @@ body.ob-open { overflow: hidden; }
 .ob-returning-title { margin: 0 0 0.4rem; font-weight: 600; font-size: 0.9rem; }
 .ob-returning .actions-row { flex-wrap: wrap; }
 .ob-returning button { min-height: 2.75rem; }
+.sync-dialog .link-btn { color: var(--accent-text); font-size: 0.9rem; }
