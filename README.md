@@ -20,6 +20,16 @@ Navigation: a bottom tab bar (Today, Log, Insights, Plan) plus a **More** sheet 
 - **Meds** — medicine reference table with dosing/timing notes.
 - **About** — how to use it day to day, a **Share report** card (weekly Markdown summary for your coach: pick what to include, weight is off by default; Copy / Share / Download .md), plus Export/Import of your data (JSON backup).
 
+## Cloud sync (name + PIN)
+
+Optional and off by default. The planner is **local-first**: `localStorage` stays the working copy and the app works fully offline; cloud sync only copies it to a small backend so a new browser or device can sign in with a **name and PIN** and pull your history. Open **About > Cloud sync** to create an account or sign in.
+
+- **What is synced:** the planner data (every `elevate-planner:` key: day checklists, log, plan settings). Theme, reminders and the first-run flag stay per device.
+- **Merging:** changes are pushed after a short delay, when you leave the app, and on **Sync now**; the newest edit of each item wins. Signing in on a device that already has data merges it into the account rather than replacing it. Using several devices? Create the account on the device with the most data first.
+- **PIN:** never stored on the device (only a session token) and never logged; the server keeps only a slow salted hash. A forgotten PIN can't be reset.
+- **Your control:** sign out any time (data stays on the device) or **Delete my cloud data**.
+- **Enable it:** set `SYNC_BASE_URL` in `syncconfig.js` to your backend (see `docs/sync-api.md`). While it is empty the app behaves exactly as before and About shows "Cloud sync isn't set up yet".
+
 ## Design choices
 
 - **No personal data committed.** The repo (and therefore the public GitHub
